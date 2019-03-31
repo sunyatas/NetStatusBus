@@ -23,13 +23,13 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name="com.sunchen.networkobserver.NetStateReceiver">
+        <!--<receiver android:name="com.sunchen.networkobserver.NetStateReceiver">-->
 
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-            </intent-filter>
+            <!--<intent-filter>-->
+                <!--<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />-->
+            <!--</intent-filter>-->
 
-        </receiver>
+        <!--</receiver>-->
     </application>
 
 

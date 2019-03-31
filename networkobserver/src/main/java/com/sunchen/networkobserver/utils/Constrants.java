@@ -18,7 +18,7 @@ public class Constrants {
     /**
      * 系统网络改变广播
      */
-    public static final String ANDROID_NET_CHANGE_ACTION = "android.net.com.CONNECTIVITY_CHANGE";
+    public static final String ANDROID_NET_CHANGE_ACTION = "android.net.conn.CONNECTIVITY_CHANGE";
 
     /**
      * 跳转设置回调请求标志码
