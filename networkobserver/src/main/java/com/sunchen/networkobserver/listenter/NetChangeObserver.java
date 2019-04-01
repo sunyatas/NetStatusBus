@@ -15,5 +15,4 @@ public interface NetChangeObserver {
     void onConnect(NetType netType);
 
     void onDisConnect();
-
 }

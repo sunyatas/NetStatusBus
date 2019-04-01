@@ -25,9 +25,6 @@ public class NetworkManager {
         receiver = new NetStateReceiver();
     }
 
-    public void setListener(NetChangeObserver listener) {
-        receiver.setListener(listener);
-    }
 
     public static NetworkManager getInstance() {
         if (instance == null) {
@@ -43,25 +40,29 @@ public class NetworkManager {
 
     /**
      * 初始化方法
-     *
      * @param application
      */
-    public void init(Application application) {
+    public NetworkManager init(Application application) {
         if (application == null) {
-            return;
+            throw new IllegalArgumentException("application must be an instance of Application");
         }
         this.application = application;
 //        动态广播注册
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Constrants.ANDROID_NET_CHANGE_ACTION);
         application.registerReceiver(receiver, intentFilter);
+
+        return this;
+    }
+
+    public void setListener(NetChangeObserver listener) {
+        receiver.setListener(listener);
     }
 
     public Application getApplication() {
         if (application == null) {
             throw new RuntimeException("未传入application.context");
         }
-
         return application;
     }
 

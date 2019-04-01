@@ -16,10 +16,7 @@ public class MainActivity extends AppCompatActivity implements NetChangeObserver
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        NetworkManager.getInstance().init(getApplication());
-        NetworkManager.getInstance().setListener(this);
-
+        NetworkManager.getInstance().init(getApplication()).setListener(this);
         findViewById(R.id.btn_to_setting).setOnClickListener(this);
     }
 
