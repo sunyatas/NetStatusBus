@@ -44,10 +44,6 @@ public class NetworkManager {
     }
 
 
-//    public void setListener(NetChangeObserver listener) {
-//        receiver.setListener(listener);
-//    }
-
     public static NetworkManager getInstance() {
         if (instance == null) {
             synchronized (NetworkManager.class) {

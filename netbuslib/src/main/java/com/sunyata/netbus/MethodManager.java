@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 public class MethodManager {
 
     //参数类型
-    private Class<?> clazz;
+    private Class<?> parameterClazz;
 
 //    网络类型
     private NetType netType;
@@ -27,19 +27,19 @@ public class MethodManager {
     private Method method;
 
     public MethodManager(Class<?> clazz, NetType netType, Method method) {
-        this.clazz = clazz;
+        this.parameterClazz = clazz;
         this.netType = netType;
         this.method = method;
     }
 
 
 
-    public Class<?> getClazz() {
-        return clazz;
+    public Class<?> getParameterClazz() {
+        return parameterClazz;
     }
 
-    public void setClazz(Class<?> clazz) {
-        this.clazz = clazz;
+    public void setParameterClazz(Class<?> parameterClazz) {
+        this.parameterClazz = parameterClazz;
     }
 
     public NetType getNetType() {

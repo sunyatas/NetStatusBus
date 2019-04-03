@@ -7,30 +7,19 @@ import android.view.View;
 
 import com.sunyata.netbus.NetworkManager;
 import com.sunyata.netbus.annotation.Network;
-import com.sunyata.netbus.listenter.NetChangeObserver;
 import com.sunyata.netbus.type.NetType;
 import com.sunyata.netbus.utils.Constrants;
 import com.sunyata.netbus.utils.NetworkUtils;
 
-public class MainActivity extends AppCompatActivity implements NetChangeObserver, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        NetworkManager.getInstance().registerObserver(this);
+        NetworkManager.getInstance().init(this.getApplication()).registerObserver(this);
 
         findViewById(R.id.btn_to_setting).setOnClickListener(this);
-    }
-
-    @Override
-    public void onConnect(NetType netType) {
-        Log.e("net>>>>>", netType.name());
-    }
-
-    @Override
-    public void onDisConnect() {
-        Log.e("net>>>>>", "没有网络");
     }
 
     @Override
@@ -68,6 +57,5 @@ public class MainActivity extends AppCompatActivity implements NetChangeObserver
         super.onDestroy();
         NetworkManager.getInstance().unRegisterObserver(this);
         NetworkManager.getInstance().unRegisterAllObserver();
-
     }
 }

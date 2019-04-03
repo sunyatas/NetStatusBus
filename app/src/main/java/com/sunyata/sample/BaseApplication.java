@@ -16,6 +16,6 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        NetworkManager.getInstance().init(this);
+//        NetworkManager.getInstance().init(this);
     }
 }

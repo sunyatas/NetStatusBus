@@ -82,11 +82,6 @@ public class NetworkUtils {
      * 打开网络设置界面
      */
     public static void openSetting(Context context, int requestCode) {
-//        Intent intent = new Intent("/");
-//        ComponentName name = new ComponentName("com.android.settings", "com.android.settings.WirelessSettings");
-//        intent.setComponent(name);
-//        intent.setAction("android.intent.action.VIEW");
-//        ((Activity) context).startActivityForResult(intent, requestCode);
 
 //      context.startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
         context.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));

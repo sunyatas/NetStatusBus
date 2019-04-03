@@ -30,8 +30,6 @@ public class NetStateReceiver extends BroadcastReceiver {
 
     private NetType netType;//网络类型
 
-//    private NetChangeObserver listener;//网络监听
-
     private Map<Object, List<MethodManager>> networkList;
 
 
@@ -40,9 +38,6 @@ public class NetStateReceiver extends BroadcastReceiver {
         networkList = new HashMap<>();
     }
 
-//    public void setListener(NetChangeObserver listener) {
-//        this.listener = listener;
-//    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -54,17 +49,10 @@ public class NetStateReceiver extends BroadcastReceiver {
             Log.e(Constrants.LOG_TAG, "网络发生了改变");
             netType = NetworkUtils.getNetType();
             if (NetworkUtils.isNetworkAvailable()) {
-                Log.e(Constrants.LOG_TAG, "网络连接成功");
-//                if (listener != null) {
-//                    listener.onConnect(netType);
-//                }
+                Log.d(Constrants.LOG_TAG, "网络连接成功");
             } else {
-                Log.e(Constrants.LOG_TAG, "没有网络连接");
-//                if (listener != null) {
-//                    listener.onDisConnect();
-//                }
+                Log.d(Constrants.LOG_TAG, "没有网络连接");
             }
-
             post(netType);
         }
     }
@@ -82,7 +70,7 @@ public class NetStateReceiver extends BroadcastReceiver {
             List<MethodManager> methodManagerList = networkList.get(getter);
             if (methodManagerList != null) {
                 for (MethodManager method : methodManagerList) {
-                    if (method.getClazz().isAssignableFrom(netType.getClass())) {
+                    if (method.getParameterClazz().isAssignableFrom(netType.getClass())) {
                         switch (method.getNetType()) {
                             case AUTO:
                                 invoke(method, getter, netType);
@@ -112,9 +100,9 @@ public class NetStateReceiver extends BroadcastReceiver {
     }
 
     private void invoke(MethodManager method, Object getter, NetType netType) {
-        Method excute = method.getMethod();
+        Method execute = method.getMethod();
         try {
-            excute.invoke(getter, netType);
+            execute.invoke(getter, netType);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -148,12 +136,10 @@ public class NetStateReceiver extends BroadcastReceiver {
                 throw new IllegalArgumentException("方法不是void");
             }
 
-
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length != 1) {
                 throw new IllegalArgumentException(method.getName() + "方法只能有一个参数");
             }
-
 
             MethodManager methodManager = new MethodManager(parameterTypes[0], networkAnnotation.netType(), method);
             methodManagerList.add(methodManager);
