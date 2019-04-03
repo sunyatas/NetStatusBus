@@ -1,16 +1,14 @@
-package com.sunchen.networkobserver.utils;
+package com.sunyata.netbus.utils;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.provider.Settings;
 
-import com.sunchen.networkobserver.NetworkManager;
-import com.sunchen.networkobserver.type.NetType;
+import com.sunyata.netbus.NetworkManager;
+import com.sunyata.netbus.type.NetType;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   19:04.

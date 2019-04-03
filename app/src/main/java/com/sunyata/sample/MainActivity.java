@@ -1,16 +1,16 @@
-package com.sunchen.netobserver;
+package com.sunyata.sample;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import com.sunchen.networkobserver.NetworkManager;
-import com.sunchen.networkobserver.annotation.Network;
-import com.sunchen.networkobserver.listenter.NetChangeObserver;
-import com.sunchen.networkobserver.type.NetType;
-import com.sunchen.networkobserver.utils.Constrants;
-import com.sunchen.networkobserver.utils.NetworkUtils;
+import com.sunyata.netbus.NetworkManager;
+import com.sunyata.netbus.annotation.Network;
+import com.sunyata.netbus.listenter.NetChangeObserver;
+import com.sunyata.netbus.type.NetType;
+import com.sunyata.netbus.utils.Constrants;
+import com.sunyata.netbus.utils.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity implements NetChangeObserver, View.OnClickListener {
     @Override

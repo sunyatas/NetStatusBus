@@ -1,1 +1,1 @@
-include ':app', ':networkobserver'
+include ':app', ':netbuslib'

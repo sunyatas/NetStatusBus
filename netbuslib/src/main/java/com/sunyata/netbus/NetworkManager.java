@@ -1,10 +1,9 @@
-package com.sunchen.networkobserver;
+package com.sunyata.netbus;
 
 import android.app.Application;
 import android.content.IntentFilter;
 
-import com.sunchen.networkobserver.listenter.NetChangeObserver;
-import com.sunchen.networkobserver.utils.Constrants;
+import com.sunyata.netbus.utils.Constrants;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   19:07.

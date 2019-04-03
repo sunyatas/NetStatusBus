@@ -1,8 +1,8 @@
-package com.sunchen.netobserver;
+package com.sunyata.sample;
 
 import android.app.Application;
 
-import com.sunchen.networkobserver.NetworkManager;
+import com.sunyata.netbus.NetworkManager;
 
 /**
  * Created by 「孙晨」 on 2019/4/2   22:19.

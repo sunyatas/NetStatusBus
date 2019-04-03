@@ -1,6 +1,6 @@
-package com.sunchen.networkobserver.listenter;
+package com.sunyata.netbus.listenter;
 
-import com.sunchen.networkobserver.type.NetType;
+import com.sunyata.netbus.type.NetType;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   18:48.

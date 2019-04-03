@@ -1,4 +1,4 @@
-package com.sunchen.networkobserver.type;
+package com.sunyata.netbus.type;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   18:53.

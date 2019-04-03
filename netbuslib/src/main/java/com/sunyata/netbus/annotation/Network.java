@@ -1,6 +1,6 @@
-package com.sunchen.networkobserver.annotation;
+package com.sunyata.netbus.annotation;
 
-import com.sunchen.networkobserver.type.NetType;
+import com.sunyata.netbus.type.NetType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

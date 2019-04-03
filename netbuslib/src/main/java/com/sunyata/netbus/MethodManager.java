@@ -1,4 +1,4 @@
-package com.sunchen.networkobserver;
+package com.sunyata.netbus;
 
 /**
  * Created by 「孙晨」 on 2019/4/2   22:28.
@@ -8,7 +8,7 @@ package com.sunchen.networkobserver;
  * MethodManager
  */
 
-import com.sunchen.networkobserver.type.NetType;
+import com.sunyata.netbus.type.NetType;
 
 import java.lang.reflect.Method;
 
