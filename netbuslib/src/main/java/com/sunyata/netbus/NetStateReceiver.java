@@ -61,33 +61,37 @@ public class NetStateReceiver extends BroadcastReceiver {
     private void post(NetType netType) {
         //所有的注册类
         Set<Object> set = networkList.keySet();
-        for (Object getter : set) {
-            List<MethodManager> methodManagerList = networkList.get(getter);
-            if (methodManagerList != null) {
-                for (MethodManager method : methodManagerList) {
-                    if (method.getParameterClazz().isAssignableFrom(netType.getClass())) {
-                        switch (method.getAnnotationNetType()) {
-                            case AUTO:
-                                invoke(method, getter, netType);
-                                break;
+        for (Object clazz : set) {
+            List<MethodManager> methodManagerList = networkList.get(clazz);
+            executeInvoke(clazz, methodManagerList);
+        }
+    }
 
-                            case WIFI:
-                                if (netType == NetType.WIFI || netType == NetType.NONE)
-                                    invoke(method, getter, netType);
-                                break;
+    private void executeInvoke(Object clazz, List<MethodManager> methodManagerList) {
+        if (methodManagerList != null) {
+            for (MethodManager method : methodManagerList) {
+                if (method.getParameterClazz().isAssignableFrom(netType.getClass())) {
+                    switch (method.getAnnotationNetType()) {
+                        case AUTO:
+                            invoke(method, clazz, netType);
+                            break;
 
-                            case MOBILE:
-                                if (netType == NetType.MOBILE || netType == NetType.MOBILE)
-                                    invoke(method, getter, netType);
+                        case WIFI:
+                            if (netType == NetType.WIFI || netType == NetType.NONE)
+                                invoke(method, clazz, netType);
+                            break;
 
-                                break;
+                        case MOBILE:
+                            if (netType == NetType.MOBILE || netType == NetType.MOBILE)
+                                invoke(method, clazz, netType);
 
-                            case NONE:
-                                if (netType == NetType.NONE)
-                                    invoke(method, getter, netType);
+                            break;
 
-                            default:
-                        }
+                        case NONE:
+                            if (netType == NetType.NONE)
+                                invoke(method, clazz, netType);
+
+                        default:
                     }
                 }
             }
@@ -111,7 +115,7 @@ public class NetStateReceiver extends BroadcastReceiver {
             networkList.put(mContext, methodList);
         }
 
-//      若非LAUNCHER Activity则先post
+//      若非LAUNCHER Activity则先执一遍方法
         if (mContext instanceof Activity) {
             Set<String> categories = ((Activity) mContext).getIntent().getCategories();
             if (categories != null) {
@@ -123,7 +127,7 @@ public class NetStateReceiver extends BroadcastReceiver {
                 }
             }
         }
-        post(NetworkUtils.getNetType());
+        executeInvoke(mContext, networkList.get(mContext));
     }
 
     private List<MethodManager> findAnnotationMethod(Object mContext) {

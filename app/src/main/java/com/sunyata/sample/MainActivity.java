@@ -17,7 +17,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.btn_to_setting).setOnClickListener(this);
-
         NetStateBus.getDefault().register(this);
     }
 
@@ -28,8 +27,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Network(netType = NetType.WIFI)
     public void network(NetType netType) {
-        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity2");
+        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
     }
+
+
+    @Network(netType = NetType.MOBILE)
+    public void networkMobile(NetType netType) {
+        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
+    }
+
 
     @Override
     protected void onDestroy() {
