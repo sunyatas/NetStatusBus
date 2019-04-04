@@ -2,7 +2,7 @@ package com.sunyata.sample;
 
 import android.app.Application;
 
-import com.sunyata.netbus.NetworkManager;
+import com.sunyata.netbus.NetStateBus;
 
 /**
  * Created by 「孙晨」 on 2019/4/2   22:19.
@@ -16,6 +16,6 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        NetworkManager.getInstance().init(this);
+        NetStateBus.getDefault().init(this);
     }
 }

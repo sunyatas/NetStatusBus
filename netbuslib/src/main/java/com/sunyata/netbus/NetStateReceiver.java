@@ -1,5 +1,6 @@
 package com.sunyata.netbus;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -46,13 +47,7 @@ public class NetStateReceiver extends BroadcastReceiver {
         }
 //        处理广播事件
         if (intent.getAction().equalsIgnoreCase(Constrants.ANDROID_NET_CHANGE_ACTION)) {
-            Log.e(Constrants.LOG_TAG, "网络发生了改变");
             netType = NetworkUtils.getNetType();
-            if (NetworkUtils.isNetworkAvailable()) {
-                Log.d(Constrants.LOG_TAG, "网络连接成功");
-            } else {
-                Log.d(Constrants.LOG_TAG, "没有网络连接");
-            }
             post(netType);
         }
     }
@@ -71,7 +66,7 @@ public class NetStateReceiver extends BroadcastReceiver {
             if (methodManagerList != null) {
                 for (MethodManager method : methodManagerList) {
                     if (method.getParameterClazz().isAssignableFrom(netType.getClass())) {
-                        switch (method.getNetType()) {
+                        switch (method.getAnnotationNetType()) {
                             case AUTO:
                                 invoke(method, getter, netType);
                                 break;
@@ -79,19 +74,19 @@ public class NetStateReceiver extends BroadcastReceiver {
                             case WIFI:
                                 if (netType == NetType.WIFI || netType == NetType.NONE)
                                     invoke(method, getter, netType);
-
                                 break;
 
-                            case CMNET:
-                                if (netType == NetType.WIFI || netType == NetType.NONE)
+                            case MOBILE:
+                                if (netType == NetType.MOBILE || netType == NetType.MOBILE)
                                     invoke(method, getter, netType);
+
                                 break;
 
-                            case CMWAP:
-                                if (netType == NetType.WIFI || netType == NetType.NONE)
+                            case NONE:
+                                if (netType == NetType.NONE)
                                     invoke(method, getter, netType);
-                                break;
 
+                            default:
                         }
                     }
                 }
@@ -115,6 +110,20 @@ public class NetStateReceiver extends BroadcastReceiver {
             methodList = findAnnotationMethod(mContext);
             networkList.put(mContext, methodList);
         }
+
+//      若非LAUNCHER Activity则先post
+        if (mContext instanceof Activity) {
+            Set<String> categories = ((Activity) mContext).getIntent().getCategories();
+            if (categories != null) {
+                for (String category : categories) {
+                    //若为mainActivity
+                    if (category.equalsIgnoreCase("android.intent.category.LAUNCHER")) {
+                        return;
+                    }
+                }
+            }
+        }
+        post(NetworkUtils.getNetType());
     }
 
     private List<MethodManager> findAnnotationMethod(Object mContext) {
@@ -158,7 +167,6 @@ public class NetStateReceiver extends BroadcastReceiver {
         if (!networkList.isEmpty()) {
             networkList.clear();
         }
-//注销广播
-        NetworkManager.getInstance().unRegisterObserver(this);
+        NetStateBus.getDefault().getApplication().unregisterReceiver(this);
     }
 }

@@ -7,7 +7,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.provider.Settings;
 
-import com.sunyata.netbus.NetworkManager;
+import com.sunyata.netbus.NetStateBus;
 import com.sunyata.netbus.type.NetType;
 
 /**
@@ -24,7 +24,7 @@ public class NetworkUtils {
      * 网络是否可用
      */
     public static boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) NetworkManager.getInstance()
+        ConnectivityManager connectivityManager = (ConnectivityManager) NetStateBus.getDefault()
                 .getApplication()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager == null) {
@@ -47,33 +47,30 @@ public class NetworkUtils {
      * 获取当前的网络类型
      */
     public static NetType getNetType() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) NetworkManager.getInstance()
+        ConnectivityManager connectivityManager = (ConnectivityManager) NetStateBus.getDefault()
                 .getApplication()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
-
         if (connectivityManager == null) {
             return NetType.NONE;
         }
-
 //        获取当前激活的网络连接信息
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
-
         if (info == null) {
             return NetType.NONE;
         }
-
         int type = info.getType();
 
         if (type == ConnectivityManager.TYPE_MOBILE) {
-            if (info.getExtraInfo().toLowerCase().equals("cmnet")) {
-                return NetType.CMNET;
-            } else {
-                return NetType.CMWAP;
-            }
+//            if (info.getExtraInfo().toLowerCase().equals("cmnet")) {
+//                return NetType.CMNET;
+//            } else {
+//                return NetType.CMWAP;
+//            }
+            return NetType.MOBILE;
+
         } else if (type == ConnectivityManager.TYPE_WIFI) {
             return NetType.WIFI;
         }
-
         return NetType.NONE;
     }
 

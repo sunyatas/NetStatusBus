@@ -10,17 +10,17 @@ import com.sunyata.netbus.utils.Constrants;
  * <p>
  * God bless me only
  * <p>
- * NetworkManager
+ * NetStateBus
  */
 
-public class NetworkManager {
+public class NetStateBus {
 
-    private static volatile NetworkManager instance;
+    private static volatile NetStateBus instance;
     private Application application;
     private NetStateReceiver receiver;
 
 
-    public NetworkManager() {
+    public NetStateBus() {
         receiver = new NetStateReceiver();
     }
 
@@ -30,7 +30,7 @@ public class NetworkManager {
      *
      * @param application
      */
-    public NetworkManager init(Application application) {
+    public NetStateBus init(Application application) {
         if (application == null) {
             throw new IllegalArgumentException("application is empty");
         }
@@ -44,11 +44,11 @@ public class NetworkManager {
     }
 
 
-    public static NetworkManager getInstance() {
+    public static NetStateBus getDefault() {
         if (instance == null) {
-            synchronized (NetworkManager.class) {
+            synchronized (NetStateBus.class) {
                 if (instance == null) {
-                    instance = new NetworkManager();
+                    instance = new NetStateBus();
                 }
             }
         }
@@ -64,15 +64,15 @@ public class NetworkManager {
         return application;
     }
 
-    public void registerObserver(Object mContext) {
+    public void register(Object mContext) {
         receiver.registerObserver(mContext);
     }
 
-    public void unRegisterObserver(Object mContext) {
+    public void unregister(Object mContext) {
         receiver.unRegisterObserver(mContext);
     }
 
-    public void unRegisterAllObserver() {
+    public void unregisterAllObserver() {
         receiver.unRegisterAllObserver();
     }
 }

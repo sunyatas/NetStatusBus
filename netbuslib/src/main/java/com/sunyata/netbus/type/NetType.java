@@ -13,10 +13,8 @@ public enum NetType {
     AUTO,
     //wifi网络
     WIFI,
-    //pc、笔记本、pad上网
-    CMNET,
-    //手机上网
-    CMWAP,
     //没有任何网络
     NONE,
+    //移动网络
+    MOBILE
 }

@@ -21,14 +21,14 @@ public class MethodManager {
     private Class<?> parameterClazz;
 
 //    网络类型
-    private NetType netType;
+    private NetType annotationNetType;
 
 //    需要这执行的方法
     private Method method;
 
     public MethodManager(Class<?> clazz, NetType netType, Method method) {
         this.parameterClazz = clazz;
-        this.netType = netType;
+        this.annotationNetType = netType;
         this.method = method;
     }
 
@@ -42,12 +42,12 @@ public class MethodManager {
         this.parameterClazz = parameterClazz;
     }
 
-    public NetType getNetType() {
-        return netType;
+    public NetType getAnnotationNetType() {
+        return annotationNetType;
     }
 
-    public void setNetType(NetType netType) {
-        this.netType = netType;
+    public void setAnnotationNetType(NetType annotationNetType) {
+        this.annotationNetType = annotationNetType;
     }
 
     public Method getMethod() {
