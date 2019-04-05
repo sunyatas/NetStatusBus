@@ -39,3 +39,8 @@ public void doSomething(NetType netType) {
 当网络状态发生改变时，会自动执行使用 @NetSubscriber 进行注解的方法。
 
 好了，这样就拥有了一个强解耦能力的网络监听框架，使用它我们可以避免复杂和容易出错的依赖关系以及各种生命周期问题，使代码变得更简单健壮。
+
+#### 联系方式
+<img src="http://image.sunchen.cc/wechat_me.jpg" width="300"  alt="微信"/>
+
+Email:[sunchen.cc@qq.com](sunchen.cc@qq.com)
