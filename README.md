@@ -43,4 +43,4 @@ public void doSomething(NetType netType) {
 #### 联系方式
 <img src="http://image.sunchen.cc/wechat_me.jpg" width="300"  alt="微信"/>
 
-Email:[sunchen.cc@qq.com](sunchen.cc@qq.com)
+Email: <a href="sunchen.cc@qq.com">sunchen.cc@qq.com</a>
