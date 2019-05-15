@@ -33,7 +33,7 @@ protected void onStop() {
 ``` java
 @NetSubscriber(netType = NetType.AUTO)
 public void doSomething(NetType netType) {
-    Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity");
+    Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity");
 }
 ````
 当网络状态发生改变时，会自动执行使用 @NetSubscriber 进行注解的方法。

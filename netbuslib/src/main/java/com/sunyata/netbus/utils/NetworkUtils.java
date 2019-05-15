@@ -61,11 +61,7 @@ public class NetworkUtils {
         int type = info.getType();
 
         if (type == ConnectivityManager.TYPE_MOBILE) {
-//            if (info.getExtraInfo().toLowerCase().equals("cmnet")) {
-//                return NetType.CMNET;
-//            } else {
-//                return NetType.CMWAP;
-//            }
+
             return NetType.MOBILE;
 
         } else if (type == ConnectivityManager.TYPE_WIFI) {
@@ -80,7 +76,6 @@ public class NetworkUtils {
      */
     public static void openSetting(Context context, int requestCode) {
 
-//      context.startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
         context.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
     }
 

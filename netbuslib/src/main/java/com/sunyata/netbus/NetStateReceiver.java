@@ -1,16 +1,8 @@
 package com.sunyata.netbus;
-
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
-
 import com.sunyata.netbus.annotation.Network;
 import com.sunyata.netbus.type.NetType;
 import com.sunyata.netbus.utils.Constrants;
-import com.sunyata.netbus.utils.NetworkUtils;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -27,7 +19,7 @@ import java.util.Set;
  * NetStateReceiver
  */
 
-public class NetStateReceiver extends BroadcastReceiver {
+public class NetStateReceiver {
 
     private NetType netType;//网络类型
 
@@ -39,28 +31,13 @@ public class NetStateReceiver extends BroadcastReceiver {
         networkList = new HashMap<>();
     }
 
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (intent == null || intent.getAction() == null) {
-            return;
-        }
-//        处理广播事件
-        if (intent.getAction().equalsIgnoreCase(Constrants.ANDROID_NET_CHANGE_ACTION)) {
-            netType = NetworkUtils.getNetType();
-            post(netType);
-        }
-    }
-
-
     /**
      * 分发
-     *
-     * @param netType
      */
-    private void post(NetType netType) {
+    protected void post(NetType netType) {
         //所有的注册类
         Set<Object> set = networkList.keySet();
+        this.netType = netType;
         for (Object clazz : set) {
             List<MethodManager> methodManagerList = networkList.get(clazz);
             executeInvoke(clazz, methodManagerList);
@@ -114,19 +91,6 @@ public class NetStateReceiver extends BroadcastReceiver {
             methodList = findAnnotationMethod(mContext);
             networkList.put(mContext, methodList);
         }
-
-//      若非LAUNCHER Activity则先执一遍方法
-        if (mContext instanceof Activity) {
-            Set<String> categories = ((Activity) mContext).getIntent().getCategories();
-            if (categories != null) {
-                for (String category : categories) {
-                    //若为mainActivity
-                    if (category.equalsIgnoreCase("android.intent.category.LAUNCHER")) {
-                        return;
-                    }
-                }
-            }
-        }
         executeInvoke(mContext, networkList.get(mContext));
     }
 
@@ -141,11 +105,10 @@ public class NetStateReceiver extends BroadcastReceiver {
             if (networkAnnotation == null) {
                 continue;
             }
-
 //            注解方法校验
             Type genericReturnType = method.getGenericReturnType();
             if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
-                Log.e(Constrants.LOG_TAG, "方法不是void");
+                Log.d(Constrants.LOG_TAG, "方法不是void");
                 throw new IllegalArgumentException("方法不是void");
             }
 
@@ -170,7 +133,7 @@ public class NetStateReceiver extends BroadcastReceiver {
     public void unRegisterAllObserver() {
         if (!networkList.isEmpty()) {
             networkList.clear();
+            networkList = null;
         }
-        NetStateBus.getDefault().getApplication().unregisterReceiver(this);
     }
 }

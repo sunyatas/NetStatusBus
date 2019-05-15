@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
+//apply plugin: 'com.novoda.bintray-release'//添加
 
 android {
     compileSdkVersion 28
-
 
 
     defaultConfig {
@@ -32,3 +32,12 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
+
+//publish {
+//    userOrg = 'novoda'
+//    groupId = 'com.novoda'
+//    artifactId = 'netstatebus'
+//    publishVersion = '1.0.0'
+//    desc = 'Oh hi, this is a nice description for a project, right?'
+//    website = 'https://github.com/novoda/bintray-release'
+//}

@@ -32,8 +32,6 @@ public class MethodManager {
         this.method = method;
     }
 
-
-
     public Class<?> getParameterClazz() {
         return parameterClazz;
     }

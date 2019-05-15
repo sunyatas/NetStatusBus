@@ -3,6 +3,7 @@ package com.sunyata.sample;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.sunyata.netbus.NetStateBus;
 import com.sunyata.netbus.annotation.Network;
@@ -19,20 +20,25 @@ public class Main2Activity extends AppCompatActivity {
 
     }
 
-    @Network(netType = NetType.WIFI)
-    public void doNet(NetType netType) {
-        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity2");
-    }
+//    @Network(netType = NetType.WIFI)
+//    public void doNet(NetType netType) {
+//        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity2");
+//    }
 
     @Network(netType = NetType.AUTO)
     public void doNet2(NetType netType) {
-        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity2");
+        Toast.makeText(this, "mainActivity2" + netType.name(), Toast.LENGTH_SHORT).show();
+        Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity2");
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        NetStateBus.getDefault().unregister(this);
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        NetStateBus.getDefault().unregister(this);
     }
 }
