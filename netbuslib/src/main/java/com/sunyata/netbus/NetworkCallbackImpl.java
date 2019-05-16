@@ -12,9 +12,9 @@ import com.sunyata.netbus.utils.NetworkUtils;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
-    private NetStateReceiver mReceiver;
+    private NetStatusReceiver mReceiver;
 
-    public NetworkCallbackImpl(NetStateReceiver receiver) {
+    public NetworkCallbackImpl(NetStatusReceiver receiver) {
         mReceiver = receiver;
     }
 

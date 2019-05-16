@@ -13,24 +13,24 @@ import android.os.Build;
  * <p>
  * God bless me only
  * <p>
- * NetStateBus
+ * NetStatusBus
  */
 
-public class NetStateBus {
+public class NetStatusBus {
 
-    private static volatile NetStateBus instance;
+    private static volatile NetStatusBus instance;
     private Application application;
-    private NetStateReceiver receiver;
+    private NetStatusReceiver receiver;
 
-    public NetStateBus() {
-        receiver = new NetStateReceiver();
+    public NetStatusBus() {
+        receiver = new NetStatusReceiver();
     }
 
-    public static NetStateBus getDefault() {
+    public static NetStatusBus getDefault() {
         if (instance == null) {
-            synchronized (NetStateBus.class) {
+            synchronized (NetStatusBus.class) {
                 if (instance == null) {
-                    instance = new NetStateBus();
+                    instance = new NetStatusBus();
                 }
             }
         }
@@ -59,7 +59,7 @@ public class NetStateBus {
             ConnectivityManager.NetworkCallback networkCallback = new NetworkCallbackImpl(receiver);
             NetworkRequest.Builder builder = new NetworkRequest.Builder();
             NetworkRequest request = builder.build();
-            ConnectivityManager manager = (ConnectivityManager) NetStateBus
+            ConnectivityManager manager = (ConnectivityManager) NetStatusBus
                     .getDefault().getApplication()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -85,7 +85,7 @@ public class NetStateBus {
                     networkCallback = new NetworkCallbackImpl(receiver);
                     NetworkRequest.Builder builder = new NetworkRequest.Builder();
                     NetworkRequest request = builder.build();
-                    ConnectivityManager manager = (ConnectivityManager) NetStateBus
+                    ConnectivityManager manager = (ConnectivityManager) NetStatusBus
                             .getDefault().getApplication()
                             .getSystemService(Context.CONNECTIVITY_SERVICE);
 

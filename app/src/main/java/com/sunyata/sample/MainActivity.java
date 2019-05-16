@@ -7,7 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.sunyata.netbus.NetStateBus;
+import com.sunyata.netbus.NetStatusBus;
 import com.sunyata.netbus.annotation.Network;
 import com.sunyata.netbus.type.NetType;
 import com.sunyata.netbus.utils.Constrants;
@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.btn_to_setting).setOnClickListener(this);
-        NetStateBus.getDefault().register(this);
+        NetStatusBus.getDefault().register(this);
     }
 
     @Override
@@ -50,6 +50,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        NetStateBus.getDefault().unregister(this);
+        NetStatusBus.getDefault().unregister(this);
     }
 }

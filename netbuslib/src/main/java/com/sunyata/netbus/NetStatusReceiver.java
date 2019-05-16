@@ -16,17 +16,17 @@ import java.util.Set;
  * <p>
  * God bless me only
  * <p>
- * NetStateReceiver
+ * NetStatusReceiver
  */
 
-public class NetStateReceiver {
+public class NetStatusReceiver {
 
     private NetType netType;//网络类型
 
     private Map<Object, List<MethodManager>> networkList;
 
 
-    public NetStateReceiver() {
+    public NetStatusReceiver() {
         netType = NetType.NONE;
         networkList = new HashMap<>();
     }

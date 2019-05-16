@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.sunyata.netbus.NetStateBus;
+import com.sunyata.netbus.NetStatusBus;
 import com.sunyata.netbus.annotation.Network;
 import com.sunyata.netbus.type.NetType;
 import com.sunyata.netbus.utils.Constrants;
@@ -16,7 +16,7 @@ public class Main2Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        NetStateBus.getDefault().register(this);
+        NetStatusBus.getDefault().register(this);
 
     }
 
@@ -34,7 +34,7 @@ public class Main2Activity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        NetStateBus.getDefault().unregister(this);
+        NetStatusBus.getDefault().unregister(this);
     }
 
     @Override
