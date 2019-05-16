@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViewById(R.id.btn_to_setting).setOnClickListener(this);
-        NetStatusBus.getDefault().register(this);
+        NetStatusBus.getInstance().register(this);
     }
 
     @Override
@@ -50,6 +50,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        NetStatusBus.getDefault().unregister(this);
+        NetStatusBus.getInstance().unregister(this);
     }
 }

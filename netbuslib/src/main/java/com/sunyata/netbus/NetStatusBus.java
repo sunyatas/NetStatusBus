@@ -18,7 +18,6 @@ import android.os.Build;
 
 public class NetStatusBus {
 
-    private static volatile NetStatusBus instance;
     private Application application;
     private NetStatusReceiver receiver;
 
@@ -26,15 +25,12 @@ public class NetStatusBus {
         receiver = new NetStatusReceiver();
     }
 
-    public static NetStatusBus getDefault() {
-        if (instance == null) {
-            synchronized (NetStatusBus.class) {
-                if (instance == null) {
-                    instance = new NetStatusBus();
-                }
-            }
-        }
-        return instance;
+    private static class HolderClass {
+        private static final NetStatusBus instance = new NetStatusBus();
+    }
+
+    public static NetStatusBus getInstance() {
+        return HolderClass.instance;
     }
 
     public Application getApplication() {
@@ -46,6 +42,7 @@ public class NetStatusBus {
 
     /**
      * 初始化方法
+     *
      * @param application
      */
     @SuppressLint("MissingPermission")
@@ -60,7 +57,7 @@ public class NetStatusBus {
             NetworkRequest.Builder builder = new NetworkRequest.Builder();
             NetworkRequest request = builder.build();
             ConnectivityManager manager = (ConnectivityManager) NetStatusBus
-                    .getDefault().getApplication()
+                    .getInstance().getApplication()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
 
             if (manager != null) {
@@ -81,12 +78,12 @@ public class NetStatusBus {
             this.application = ((Activity) mContext).getApplication();
             //不通过广播注册
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                if (networkCallback == null){
+                if (networkCallback == null) {
                     networkCallback = new NetworkCallbackImpl(receiver);
                     NetworkRequest.Builder builder = new NetworkRequest.Builder();
                     NetworkRequest request = builder.build();
                     ConnectivityManager manager = (ConnectivityManager) NetStatusBus
-                            .getDefault().getApplication()
+                            .getInstance().getApplication()
                             .getSystemService(Context.CONNECTIVITY_SERVICE);
 
                     if (manager != null) {

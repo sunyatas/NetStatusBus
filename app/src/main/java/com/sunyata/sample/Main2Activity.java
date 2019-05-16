@@ -16,7 +16,7 @@ public class Main2Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        NetStatusBus.getDefault().register(this);
+        NetStatusBus.getInstance().register(this);
 
     }
 
@@ -34,7 +34,7 @@ public class Main2Activity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        NetStatusBus.getDefault().unregister(this);
+        NetStatusBus.getInstance().unregister(this);
     }
 
     @Override

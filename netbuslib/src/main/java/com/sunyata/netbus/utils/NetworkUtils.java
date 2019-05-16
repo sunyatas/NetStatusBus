@@ -24,7 +24,7 @@ public class NetworkUtils {
      * 网络是否可用
      */
     public static boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getDefault()
+        ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getInstance()
                 .getApplication()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager == null) {
@@ -47,7 +47,7 @@ public class NetworkUtils {
      * 获取当前的网络类型
      */
     public static NetType getNetType() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getDefault()
+        ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getInstance()
                 .getApplication()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager == null) {

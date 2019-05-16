@@ -33,6 +33,6 @@ publish {
     groupId = 'com.sunchen'
     artifactId = 'netstatusbus'
     publishVersion = '0.1.1'
-    desc = 'Oh hi, this is a nice description for a project, right?'
+    desc = 'Simplify the process of network monitoring, make the code more concise and efficient'
     website = 'https://github.com/sunyatas/NetStatusBus'
 }
