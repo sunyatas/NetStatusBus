@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-//apply plugin: 'com.novoda.bintray-release'//添加
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 28
@@ -10,9 +10,7 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -26,18 +24,17 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     implementation 'com.android.support:appcompat-v7:28.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
-//publish {
-//    userOrg = 'novoda'
-//    groupId = 'com.novoda'
-//    artifactId = 'netstatebus'
-//    publishVersion = '1.0.0'
-//    desc = 'Oh hi, this is a nice description for a project, right?'
-//    website = 'https://github.com/novoda/bintray-release'
-//}
+publish {
+    userOrg = 'sunchen'
+    groupId = 'cc.sunchen'
+    artifactId = 'netstatebus'
+    publishVersion = '1.0.0'
+    desc = 'Oh hi, this is a nice description for a project, right?'
+    website = 'https://github.com/sunyatas/NetStateBus'
+}
