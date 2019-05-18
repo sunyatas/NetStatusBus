@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.sunchen.netbus.NetStatusBus;
 import com.sunchen.netbus.annotation.NetSubscribe;
@@ -13,10 +13,13 @@ import com.sunchen.netbus.type.NetType;
 import com.sunchen.netbus.utils.Constrants;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    private TextView tvTips;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        tvTips = findViewById(R.id.tv_tips);
         findViewById(R.id.btn_to_setting).setOnClickListener(this);
         NetStatusBus.getInstance().register(this);
     }
@@ -26,20 +29,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(new Intent(this, Main2Activity.class));
     }
 
-//    @NetSubscribe(netType = NetType.WIFI)
-//    public void network(NetType netType) {
-//        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
-//    }
-//
-//    @NetSubscribe(netType = NetType.MOBILE)
-//    public void networkMobile(NetType netType) {
-//        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
-//    }
-
     @NetSubscribe()
-    public void doNet2(NetType netType) {
-        Toast.makeText(this, "mainActivity1" + netType.name(), Toast.LENGTH_SHORT).show();
+    public void doSometing(NetType netType) {
         Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
+        tvTips.setText("MainActivity1当前网络状态>>>>" + netType.name());
+
     }
 
     @Override
@@ -51,5 +45,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         NetStatusBus.getInstance().unregister(this);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }
