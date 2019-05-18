@@ -59,7 +59,6 @@ public class NetStatusBus {
             ConnectivityManager manager = (ConnectivityManager) NetStatusBus
                     .getInstance().getApplication()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
-
             if (manager != null) {
                 manager.registerNetworkCallback(request, networkCallback);
             }
@@ -69,32 +68,11 @@ public class NetStatusBus {
 
     private ConnectivityManager.NetworkCallback networkCallback;
 
-    @SuppressLint("MissingPermission")
     public void register(Object mContext) {
-//        if (application == null) {
-//            throw new IllegalArgumentException("application is empty");
-//        }
-        if (mContext instanceof Activity) {
-            this.application = ((Activity) mContext).getApplication();
-            //不通过广播注册
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                if (networkCallback == null) {
-                    networkCallback = new NetworkCallbackImpl(receiver);
-                    NetworkRequest.Builder builder = new NetworkRequest.Builder();
-                    NetworkRequest request = builder.build();
-                    ConnectivityManager manager = (ConnectivityManager) NetStatusBus
-                            .getInstance().getApplication()
-                            .getSystemService(Context.CONNECTIVITY_SERVICE);
-
-                    if (manager != null) {
-                        manager.registerNetworkCallback(request, networkCallback);
-                    }
-                }
-
-            }
-
-            receiver.registerObserver(mContext);
+        if (application == null) {
+            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
         }
+        receiver.registerObserver(mContext);
     }
 
     public void unregister(Object mContext) {

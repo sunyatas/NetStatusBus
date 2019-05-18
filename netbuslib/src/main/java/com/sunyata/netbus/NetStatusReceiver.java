@@ -1,6 +1,7 @@
 package com.sunyata.netbus;
 import android.util.Log;
-import com.sunyata.netbus.annotation.Network;
+
+import com.sunyata.netbus.annotation.NetSubscribe;
 import com.sunyata.netbus.type.NetType;
 import com.sunyata.netbus.utils.Constrants;
 import java.lang.reflect.Method;
@@ -59,7 +60,7 @@ public class NetStatusReceiver {
                             break;
 
                         case MOBILE:
-                            if (netType == NetType.MOBILE || netType == NetType.MOBILE)
+                            if (netType == NetType.MOBILE || netType == NetType.NONE)
                                 invoke(method, clazz, netType);
 
                             break;
@@ -101,7 +102,7 @@ public class NetStatusReceiver {
         Method[] methods = clazz.getMethods();
 
         for (Method method : methods) {
-            Network networkAnnotation = method.getAnnotation(Network.class);
+            NetSubscribe networkAnnotation = method.getAnnotation(NetSubscribe.class);
             if (networkAnnotation == null) {
                 continue;
             }

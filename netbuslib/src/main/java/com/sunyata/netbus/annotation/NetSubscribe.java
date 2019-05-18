@@ -12,10 +12,10 @@ import java.lang.annotation.Target;
  * <p>
  * God bless me only
  * <p>
- * Network
+ * NetSubscribe
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Network {
+public @interface NetSubscribe {
     NetType netType() default NetType.AUTO;
 }

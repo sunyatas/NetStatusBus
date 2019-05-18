@@ -16,6 +16,6 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        NetStatusBus.init(this);
+        NetStatusBus.getInstance().init(this);
     }
 }

@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.sunyata.netbus.NetStatusBus;
-import com.sunyata.netbus.annotation.Network;
+import com.sunyata.netbus.annotation.NetSubscribe;
 import com.sunyata.netbus.type.NetType;
 import com.sunyata.netbus.utils.Constrants;
 
@@ -26,17 +26,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(new Intent(this, Main2Activity.class));
     }
 
-//    @Network(netType = NetType.WIFI)
+//    @NetSubscribe(netType = NetType.WIFI)
 //    public void network(NetType netType) {
 //        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
 //    }
 //
-//    @Network(netType = NetType.MOBILE)
+//    @NetSubscribe(netType = NetType.MOBILE)
 //    public void networkMobile(NetType netType) {
 //        Log.e(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
 //    }
 
-    @Network(netType = NetType.AUTO)
+    @NetSubscribe()
     public void doNet2(NetType netType) {
         Toast.makeText(this, "mainActivity1" + netType.name(), Toast.LENGTH_SHORT).show();
         Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
