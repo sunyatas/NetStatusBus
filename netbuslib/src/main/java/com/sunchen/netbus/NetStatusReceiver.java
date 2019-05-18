@@ -1,9 +1,8 @@
-package com.sunyata.netbus;
-import android.util.Log;
+package com.sunchen.netbus;
 
-import com.sunyata.netbus.annotation.NetSubscribe;
-import com.sunyata.netbus.type.NetType;
-import com.sunyata.netbus.utils.Constrants;
+import com.sunchen.netbus.annotation.NetSubscribe;
+import com.sunchen.netbus.type.NetType;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -109,13 +108,12 @@ public class NetStatusReceiver {
 //            注解方法校验
             Type genericReturnType = method.getGenericReturnType();
             if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
-                Log.d(Constrants.LOG_TAG, "方法不是void");
-                throw new IllegalArgumentException("方法不是void");
+                throw new IllegalArgumentException("you" + method.getName() + "return value must be void");
             }
 
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length != 1) {
-                throw new IllegalArgumentException(method.getName() + "方法只能有一个参数");
+                throw new IllegalArgumentException("you" +method.getName() + "need a parameter NetType");
             }
 
             MethodManager methodManager = new MethodManager(parameterTypes[0], networkAnnotation.netType(), method);

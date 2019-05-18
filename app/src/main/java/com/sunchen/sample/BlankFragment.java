@@ -1,4 +1,4 @@
-package com.sunyata.sample;
+package com.sunchen.sample;
 
 
 import android.os.Bundle;

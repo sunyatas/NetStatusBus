@@ -1,4 +1,4 @@
-package com.sunyata.netbus.utils;
+package com.sunchen.netbus.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -7,8 +7,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.provider.Settings;
 
-import com.sunyata.netbus.NetStatusBus;
-import com.sunyata.netbus.type.NetType;
+import com.sunchen.netbus.NetStatusBus;
+import com.sunchen.netbus.type.NetType;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   19:04.

@@ -1,13 +1,13 @@
-package com.sunyata.sample;
+package com.sunchen.sample;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-import com.sunyata.netbus.NetStatusBus;
-import com.sunyata.netbus.annotation.NetSubscribe;
-import com.sunyata.netbus.type.NetType;
-import com.sunyata.netbus.utils.Constrants;
+import com.sunchen.netbus.NetStatusBus;
+import com.sunchen.netbus.annotation.NetSubscribe;
+import com.sunchen.netbus.type.NetType;
+import com.sunchen.netbus.utils.Constrants;
 
 public class Main2Activity extends AppCompatActivity {
 

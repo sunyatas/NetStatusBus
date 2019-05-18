@@ -1,6 +1,6 @@
-package com.sunyata.netbus.annotation;
+package com.sunchen.netbus.annotation;
 
-import com.sunyata.netbus.type.NetType;
+import com.sunchen.netbus.type.NetType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

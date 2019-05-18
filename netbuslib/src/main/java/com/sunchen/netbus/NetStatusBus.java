@@ -1,7 +1,6 @@
-package com.sunyata.netbus;
+package com.sunchen.netbus;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -35,23 +34,18 @@ public class NetStatusBus {
 
     public Application getApplication() {
         if (application == null) {
-            throw new RuntimeException("未传入application.context");
+            throw new RuntimeException("application is empty");
         }
         return application;
     }
 
-    /**
-     * 初始化方法
-     *
-     * @param application
-     */
+
     @SuppressLint("MissingPermission")
     public void init(Application application) {
         if (application == null) {
             throw new IllegalArgumentException("application is empty");
         }
         this.application = application;
-        //不通过广播注册
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
             ConnectivityManager.NetworkCallback networkCallback = new NetworkCallbackImpl(receiver);
             NetworkRequest.Builder builder = new NetworkRequest.Builder();

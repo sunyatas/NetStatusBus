@@ -1,8 +1,8 @@
-package com.sunyata.sample;
+package com.sunchen.sample;
 
 import android.app.Application;
 
-import com.sunyata.netbus.NetStatusBus;
+import com.sunchen.netbus.NetStatusBus;
 
 /**
  * Created by 「孙晨」 on 2019/4/2   22:19.

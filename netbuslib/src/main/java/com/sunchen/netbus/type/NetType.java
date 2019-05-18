@@ -1,4 +1,4 @@
-package com.sunyata.netbus.type;
+package com.sunchen.netbus.type;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   18:53.
@@ -9,7 +9,7 @@ package com.sunyata.netbus.type;
  */
 
 public enum NetType {
-    //只要有网络，不关心是wifi/gprs
+    //只要有网络
     AUTO,
     //wifi网络
     WIFI,

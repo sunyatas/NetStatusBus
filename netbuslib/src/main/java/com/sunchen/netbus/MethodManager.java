@@ -1,4 +1,4 @@
-package com.sunyata.netbus;
+package com.sunchen.netbus;
 
 /**
  * Created by 「孙晨」 on 2019/4/2   22:28.
@@ -8,7 +8,7 @@ package com.sunyata.netbus;
  * MethodManager
  */
 
-import com.sunyata.netbus.type.NetType;
+import com.sunchen.netbus.type.NetType;
 
 import java.lang.reflect.Method;
 
@@ -20,10 +20,10 @@ public class MethodManager {
     //参数类型
     private Class<?> parameterClazz;
 
-//    网络类型
+    //网络类型
     private NetType annotationNetType;
 
-//    需要这执行的方法
+    //需要这执行的方法
     private Method method;
 
     public MethodManager(Class<?> clazz, NetType netType, Method method) {
