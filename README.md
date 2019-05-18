@@ -1,46 +1,126 @@
-花一分钟时间来了解下如何使用 NetStateBus 进行网络状态监听
-# NetStateBus
-     
-![image](http://image.sunchen.cc/blog/imagenetstatebus_process.png)
+# NetStatusBus [![Download](https://api.bintray.com/packages/sunchen/maven/netstatusbus/images/download.svg)](https://bintray.com/sunchen/maven/netstatusbus/_latestVersion)
 
-NetStateBus 是一个可以无缝进行网络状态监听的框架，具有强解耦，高性能等特性。
-
-1. 只需要在你的 Application 的 onCreate() 方法中进行初始化：
-
-``` java
-NetStateBus.getDefault().init(this);
+```
+NetStateBus 是一个可以无缝进行网络状态监听的框架，使用简单，具有强解耦，高性能等特性。
 ```
 
 
-2. 在 Activity 或者 Fragment 的生命周期中进行注册和注销订阅者，如下：
-``` java
-@Override
-protected void onStart() {
-    super.onStart();
-    NetStateBus.getDefault().register(this);
-}
 
-@Override
-protected void onStop() {
-    super.onStop();
-    NetStateBus.getDefault().unregister(this);
+## 快速体验
+
+![](https://www.pgyer.com/app/qrcode/USYp)
+
+如果二维码图片不可见，[点我下载Demo体验](https://www.pgyer.com/USYp)
+
+
+
+## 通过以下方式来使用 NetStatusBus
+
+1. 通过 Gradle 添加依赖：
+
+```groovy
+implementation 'com.sunchen:netstatusbus:0.1.3'
+```
+
+
+
+2. Application 中初始化 NetStatusBus：
+
+```java
+ // 尽可能早的进行这一步操作, 建议在 Application 中完成初始化操作
+ NetStatusBus.getInstance().init(this);
+```
+
+
+
+3. 根据你的生命周期来注册和注销订阅者，例如：
+
+```java
+ @Override
+ public void onStart() {
+     super.onStart();
+     NetStatusBus.getInstance().register(this);
+ }
+
+ @Override
+ public void onStop() {
+     super.onStop();
+     NetStatusBus.getInstance().unregister(this);
+ }
+```
+
+
+
+4. 声明你的订阅方法，在该方法中可以监听到网络状态的变更：
+
+```java
+@NetSubscribe(netType = NetType.AUTO)
+ public void doSometing(NetType netType) {
+ 			Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
+      tvTips.setText("MainActivit当前网络状态>>>>" + netType.name());
+ }
+```
+
+
+
+## 注意事项
+
+订阅方法必须填写一个`NetType`参数，可以通过`NetType`的值来判断当前网络类型。
+
+#### `@NetSubscribe `中 `NetType`的类型： 
+
+#### `NetType.AUTO`
+
+ 这是默认值，任何网络状态发生变化，该类型订阅者都会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+
+```java
+@NetSubscribe(netType = NetType.AUTO)
+public void netChange(NetType netType) {
+    Log.d(Constrants.LOG_TAG, netType.name());
+}
+```
+
+#### `NetType.WIFI`
+
+ 只要当前是由 WIFI 改变引发的网络状态变化，该类型订阅者都会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+
+```java
+// 当 wifi 连接时，或者没有网络时会回调此方法
+@NetSubscribe(netType = NetType.WIFI)
+public void netChange(NetType netType) {
+    Log.d(Constrants.LOG_TAG, netType.name());
+}
+```
+
+#### `NetType.MOBILE`
+
+ 只要当前是由移动网络改变引发的网络状态变化，该类型订阅者都会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+
+```java
+// 当正在使用移动网络时，或者没有网络时会回调此方法
+@NetSubscribe(netType = NetType.MOBILE)
+public void netChange(NetType netType) {
+    Log.d(Constrants.LOG_TAG, netType.name());
+}
+```
+
+#### `NetType.NONE`
+
+ 只有当网络丢失时，该类型订阅者才会被回调。
+
+```java
+@NetSubscribe(netType = NetType.NONE)
+public void netChange(NetType netType) {
+    Log.d(Constrants.LOG_TAG, netType.name());
 }
 ```
 
 
-3. 声明你的订阅方法，你可以选择一种监听类型，NetType.AUTO 是指在任何情况下只要有网络发生变化即执行该方法，你也可以选择指定 NetType.WIFI 或者 NetType.MOBILE，即指定订阅 wifi 或者手机移动网络发生变化。
 
-``` java
-@NetSubscriber(netType = NetType.AUTO)
-public void doSomething(NetType netType) {
-    Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity");
-}
-````
-当网络状态发生改变时，会自动执行使用 @NetSubscriber 进行注解的方法。
+注意：由于Android 在7.0以后出于性能及安全的考虑对广播做了大量的限制，而监网络连接的广播在7.0以后的系统上也只有动态注册才能生效，本库出于性能考虑决定使用 `NetworkCallback` 类来代替广播实现网络状态变化监听。因此需要您将`minSdkVersion` 升级为21及以上。
 
-好了，这样就拥有了一个强解耦能力的网络监听框架，使用它我们可以避免复杂和容易出错的依赖关系以及各种生命周期问题，使代码变得更简单健壮。
 
-#### 联系方式
-<img src="http://image.sunchen.cc/wechat_me.jpg" width="300"  alt="微信"/>
 
-Email: <a href="sunchen.cc@qq.com">sunchen.cc@qq.com</a>
+## 联系方式
+
+QQ Email: [sunchen.cc@qq.com](mailto:	sunchen.cc@qq.com)
