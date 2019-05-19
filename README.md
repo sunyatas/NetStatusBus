@@ -125,4 +125,4 @@ public void netChange(NetType netType) {
 
 ## 联系方式
 
-QQ Email: [sunchen.cc@qq.com](mailto:	sunchen.cc@qq.com)
+QQ Email: [sunchen.cc@qq.com](sunchen.cc@qq.com)
