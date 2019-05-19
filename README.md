@@ -82,7 +82,7 @@ public void netChange(NetType netType) {
 
 #### `NetType.WIFI`
 
- 只要当前是由 WIFI 改变引发的网络状态变化，该类型订阅者都会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+ 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
 // 当 wifi 连接时，或者没有网络时会回调此方法
@@ -94,7 +94,7 @@ public void netChange(NetType netType) {
 
 #### `NetType.MOBILE`
 
- 只要当前是由移动网络改变引发的网络状态变化，该类型订阅者都会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+ 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
 // 当正在使用移动网络时，或者没有网络时会回调此方法
@@ -106,7 +106,7 @@ public void netChange(NetType netType) {
 
 #### `NetType.NONE`
 
- 只有当网络丢失时，该类型订阅者才会被回调。
+ 指定只有当网络丢失时，该类型订阅者才会被回调。
 
 ```java
 @NetSubscribe(netType = NetType.NONE)
