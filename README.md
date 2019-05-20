@@ -128,4 +128,5 @@ public void netChange(NetType netType) {
 QQ Email: [sunchen.cc@qq.com](sunchen.cc@qq.com)
 
 ### 微信
-![](http://image.sunchen.cc/2C5B5764CB72656989F2502633587487.png)
+![](https://www.pgyer.com/app/qrcode/USYp)
+![](http://image.sunchen.cc/wxer.png)
