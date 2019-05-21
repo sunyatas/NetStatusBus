@@ -65,48 +65,45 @@ implementation 'com.sunchen:netstatusbus:0.1.4'
 
 ## 注意事项
 
-订阅方法可以**选填**一个`NetType`参数，可以通过`NetType`的值来判断当前网络类型。
+订阅方法**可以选填**一个`NetType`参数，可以通过`NetType`的值来判断当前网络类型。
 
-#### `@NetSubscribe `中 `Mode`的类型： 
+ `@NetSubscribe `中可以指定 `mode `用来设置订阅的模式，如下：
 
 #### `Mode.AUTO`
-
- 这是默认值，任何网络状态发生变化，该类型订阅者都会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+ 这是默认值，任何网络状态发生变化，该类型订阅者都会被回调。可以通过传入`NetType`参数获知你当前的网络类型，示例如下：
 
 ```java
+//所有网络变化都会被调用，可以通过 NetType 来判断当前网络具体状态
 @NetSubscribe(mode = Mode.AUTO)
 public void netChange(NetType netType) {
     Log.d(Constrants.LOG_TAG, netType.name());
 }
 ```
 
-#### `NetType.WIFI`
-
- 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
+#### `Mode.WIFI`
+ 由 WIFI 改变引发的网络状态变化的情况下（wifi连接和断开），该类型订阅者会被回调。
 
 ```java
-// 当 wifi 连接和失去连接时都被调用
+// 当 wifi 连接和失去连接时都被调用 
 @NetSubscribe(mode = Mode.WIFI)
-public void netChange(NetType netType) {
+public void wifiChange(NetType netType) {
     Log.d(Constrants.LOG_TAG, netType.name());
 }
 ```
 
-#### `NetType.WIFI_CONNECT`
-
- 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
+#### `Mode.WIFI_CONNECT`
+ 仅在 WIFI 成功连接后（断开连接不调用），该类型订阅者会被回调。
 
 ```java
 // 只有当 wifi 连接时都被调用
 @NetSubscribe(mode = Mode.WIFI_CONNECT)
-public void netChange() {
+public void wifiChange() {
     Log.d(Constrants.LOG_TAG, "连接到wifi网络");
 }
 ```
 
-#### `NetType.MOBILE`
-
- 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
+#### `Mode.MOBILE`
+ 由移动网络改变引发的网络状态变化的情况时（移动网络连接和断开），该类型订阅者会被回调。
 
 ```java
 // 当移动网络连接和失去连接时都会被调用
@@ -116,10 +113,8 @@ public void netChange(NetType netType) {
 }
 ```
 
-#### `NetType.MOBILE _CONNECT`
-
- 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
-
+#### `Mode.MOBILE _CONNECT`
+ 仅在移动网络成功连接后（断开连接不调用），该类型订阅者会被回调。
 ```java
 // 当移动网络连接时调用
 @NetSubscribe(mode = Mode.MOBILE _CONNECT)
@@ -128,10 +123,8 @@ public void netChange() {
 }
 ```
 
-#### `NetType.NONE`
-
+#### `Mode.NONE`
  只有当网络丢失时，该类型订阅者才会被回调。
-
 ```java
 // 只有当网络丢失时，该类型订阅者才会被回调。
 @NetSubscribe(mode = Mode.NONE)
@@ -139,7 +132,6 @@ public void netChange() {
     Log.d(Constrants.LOG_TAG, "失去网络");
 }
 ```
-
 
 
 注意：由于Android 在7.0以后出于性能及安全的考虑对广播做了大量的限制，监听网络连接的广播在7.0以后的系统上也只有动态注册才能生效。
