@@ -52,6 +52,7 @@ implementation 'com.sunchen:netstatusbus:0.1.4'
 
 
 4. 声明你的订阅方法，在该方法中可以监听到网络状态的变更：
+比如想要监听 wifi 连接的情况
 
 ```java
 @NetSubscribe(mode = Mode.WIFI_CONNECT)
@@ -81,7 +82,7 @@ public void netChange(NetType netType) {
 
 #### `NetType.WIFI`
 
- 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+ 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
 // 当 wifi 连接和失去连接时都被调用
@@ -93,23 +94,22 @@ public void netChange(NetType netType) {
 
 #### `NetType.WIFI_CONNECT`
 
- 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+ 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
 // 只有当 wifi 连接时都被调用
 @NetSubscribe(mode = Mode.WIFI_CONNECT)
-public void netChange(NetType netType) {
-    Log.d(Constrants.LOG_TAG, netType.name());
+public void netChange() {
+    Log.d(Constrants.LOG_TAG, "连接到wifi网络");
 }
 ```
 
-
 #### `NetType.MOBILE`
 
- 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+ 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
-// 当移动网络连接和失去连接时都被调用
+// 当移动网络连接和失去连接时都会被调用
 @NetSubscribe(mode = Mode.MOBILE)
 public void netChange(NetType netType) {
     Log.d(Constrants.LOG_TAG, netType.name());
@@ -118,16 +118,15 @@ public void netChange(NetType netType) {
 
 #### `NetType.MOBILE _CONNECT`
 
- 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+ 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。可选传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
-// 当移动网络连接和失去连接时都被调用
+// 当移动网络连接时调用
 @NetSubscribe(mode = Mode.MOBILE _CONNECT)
-public void netChange(NetType netType) {
-    Log.d(Constrants.LOG_TAG, netType.name());
+public void netChange() {
+    Log.d(Constrants.LOG_TAG, "连接到移动网络");
 }
 ```
-
 
 #### `NetType.NONE`
 
@@ -136,8 +135,8 @@ public void netChange(NetType netType) {
 ```java
 // 只有当网络丢失时，该类型订阅者才会被回调。
 @NetSubscribe(mode = Mode.NONE)
-public void netChange(NetType netType) {
-    Log.d(Constrants.LOG_TAG, netType.name());
+public void netChange() {
+    Log.d(Constrants.LOG_TAG, "失去网络");
 }
 ```
 
