@@ -1,5 +1,6 @@
 package com.sunchen.netbus.annotation;
 
+import com.sunchen.netbus.type.Mode;
 import com.sunchen.netbus.type.NetType;
 
 import java.lang.annotation.ElementType;
@@ -14,8 +15,8 @@ import java.lang.annotation.Target;
  * <p>
  * NetSubscribe
  */
-@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 public @interface NetSubscribe {
-    NetType netType() default NetType.AUTO;
+    Mode mode() default Mode.AUTO;
 }

@@ -1,14 +1,13 @@
 package com.sunchen.sample;
 
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sunchen.netbus.NetStatusBus;
 import com.sunchen.netbus.annotation.NetSubscribe;
@@ -17,6 +16,7 @@ import com.sunchen.netbus.utils.Constrants;
 
 public class BlankFragment extends Fragment {
     private TextView tvTips;
+    private ImageView imgNetStatus;
 
     public BlankFragment() {
     }
@@ -27,23 +27,35 @@ public class BlankFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_blank, container, false);
         tvTips = view.findViewById(R.id.tv_tips_2);
+        imgNetStatus = view.findViewById(R.id.img_net_status);
         NetStatusBus.getInstance().register(this);
         return view;
     }
 
     @NetSubscribe()
     public void netChange(NetType netType) {
-        tvTips.setText("当前网络状态>>>>" + netType.name().toString());
         Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<BlankFragment");
+        switch (netType) {
+            case NONE:
+                tvTips.setText("网络连接中断...");
+                imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_no));
+                break;
+            case WIFI:
+                tvTips.setText("wifi已连接");
+                imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi));
+                break;
+
+            case MOBILE:
+                tvTips.setText("移动网络已连接");
+                imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_mobile));
+                break;
+            default:
+        }
+
     }
 
     @Override

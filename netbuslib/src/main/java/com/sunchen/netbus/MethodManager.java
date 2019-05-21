@@ -7,9 +7,7 @@ package com.sunchen.netbus;
  * <p>
  * MethodManager
  */
-
-import com.sunchen.netbus.type.NetType;
-
+import com.sunchen.netbus.type.Mode;
 import java.lang.reflect.Method;
 
 /**
@@ -20,15 +18,15 @@ public class MethodManager {
     //参数类型
     private Class<?> parameterClazz;
 
-    //网络类型
-    private NetType annotationNetType;
+    //订阅类型
+    private Mode mode;
 
-    //需要这执行的方法
+    //需要执行的方法
     private Method method;
 
-    public MethodManager(Class<?> clazz, NetType netType, Method method) {
+    public MethodManager(Class<?> clazz, Mode mode, Method method) {
         this.parameterClazz = clazz;
-        this.annotationNetType = netType;
+        this.mode = mode;
         this.method = method;
     }
 
@@ -40,12 +38,12 @@ public class MethodManager {
         this.parameterClazz = parameterClazz;
     }
 
-    public NetType getAnnotationNetType() {
-        return annotationNetType;
+    public Mode getMode() {
+        return mode;
     }
 
-    public void setAnnotationNetType(NetType annotationNetType) {
-        this.annotationNetType = annotationNetType;
+    public void setMode(Mode mode) {
+        this.mode = mode;
     }
 
     public Method getMethod() {

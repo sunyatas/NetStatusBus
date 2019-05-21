@@ -21,13 +21,13 @@ import java.util.Set;
 
 public class NetStatusReceiver {
 
-    private NetType netType;//网络类型
+    private NetType mNetType;//网络类型
 
     private Map<Object, List<MethodManager>> networkList;
 
 
-    public NetStatusReceiver() {
-        netType = NetType.NONE;
+    protected NetStatusReceiver() {
+        mNetType = NetType.NONE;
         networkList = new HashMap<>();
     }
 
@@ -36,55 +36,73 @@ public class NetStatusReceiver {
      */
     protected void post(NetType netType) {
         //所有的注册类
-        Set<Object> set = networkList.keySet();
-        this.netType = netType;
-        for (Object clazz : set) {
-            List<MethodManager> methodManagerList = networkList.get(clazz);
-            executeInvoke(clazz, methodManagerList);
+        Set<Object> subscribeClazzSet = networkList.keySet();
+        this.mNetType = netType;
+        for (Object subscribeClazz : subscribeClazzSet) {
+            List<MethodManager> methodManagerList = networkList.get(subscribeClazz);
+            executeInvoke(subscribeClazz, methodManagerList);
         }
     }
 
-    private void executeInvoke(Object clazz, List<MethodManager> methodManagerList) {
+    private void executeInvoke(Object subscribeClazz, List<MethodManager> methodManagerList) {
         if (methodManagerList != null) {
-            for (MethodManager method : methodManagerList) {
-                if (method.getParameterClazz().isAssignableFrom(netType.getClass())) {
-                    switch (method.getAnnotationNetType()) {
-                        case AUTO:
-                            invoke(method, clazz, netType);
-                            break;
+            for (MethodManager subscribeMethod : methodManagerList) {
 
-                        case WIFI:
-                            if (netType == NetType.WIFI || netType == NetType.NONE)
-                                invoke(method, clazz, netType);
-                            break;
+                switch (subscribeMethod.getMode()) {
+                    case AUTO:
+                        invoke(subscribeMethod, subscribeClazz, mNetType);
+                        break;
 
-                        case MOBILE:
-                            if (netType == NetType.MOBILE || netType == NetType.NONE)
-                                invoke(method, clazz, netType);
+                    case WIFI:
+                        if (mNetType == NetType.WIFI || mNetType == NetType.NONE)
+                            invoke(subscribeMethod, subscribeClazz, mNetType);
+                        break;
 
-                            break;
+                    case WIFI_CONNECT:
+                        if (mNetType == NetType.WIFI)
+                            invoke(subscribeMethod, subscribeClazz, mNetType);
+                        break;
 
-                        case NONE:
-                            if (netType == NetType.NONE)
-                                invoke(method, clazz, netType);
+                    case MOBILE:
+                        if (mNetType == NetType.MOBILE || mNetType == NetType.NONE)
+                            invoke(subscribeMethod, subscribeClazz, mNetType);
 
-                        default:
-                    }
+                        break;
+
+                    case MOBILE_CONNECT:
+                        if (mNetType == NetType.MOBILE) {
+                            invoke(subscribeMethod, subscribeClazz, mNetType);
+                        }
+                        break;
+
+                    case NONE:
+                        if (mNetType == NetType.NONE)
+                            invoke(subscribeMethod, subscribeClazz, mNetType);
+
+                    default:
                 }
             }
         }
     }
 
-    private void invoke(MethodManager method, Object getter, NetType netType) {
-        Method execute = method.getMethod();
+    private void invoke(MethodManager subscribeMethod, Object subscribeClazz, NetType netType) {
+
+        Method execute = subscribeMethod.getMethod();
         try {
-            execute.invoke(getter, netType);
+            //有参数时
+            if (subscribeMethod.getParameterClazz() != null) {
+                if (subscribeMethod.getParameterClazz().isAssignableFrom(mNetType.getClass())) {
+                    execute.invoke(subscribeClazz, netType);
+                }
+            } else {
+                execute.invoke(subscribeClazz);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void registerObserver(Object mContext) {
+    protected void registerObserver(Object mContext) {
         List<MethodManager> methodList = networkList.get(mContext);
         if (methodList == null) {
 //        开始添加
@@ -101,24 +119,28 @@ public class NetStatusReceiver {
         Method[] methods = clazz.getMethods();
 
         for (Method method : methods) {
-            NetSubscribe networkAnnotation = method.getAnnotation(NetSubscribe.class);
-            if (networkAnnotation == null) {
+            NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
+            if (netSubscribe == null) {
                 continue;
             }
-//            注解方法校验
+            //注解方法校验返回值
             Type genericReturnType = method.getGenericReturnType();
             if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
-                throw new IllegalArgumentException("you" + method.getName() + "return value must be void");
+                throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
             }
 
+            //判断参数
             Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length != 1) {
-                throw new IllegalArgumentException("you" +method.getName() + "need a parameter NetType");
+            MethodManager methodManager;
+            if (parameterTypes.length == 0) {
+                methodManager = new MethodManager(null, netSubscribe.mode(), method);
+            } else if (parameterTypes.length == 1) {
+                methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
+            } else {
+                throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
             }
 
-            MethodManager methodManager = new MethodManager(parameterTypes[0], networkAnnotation.netType(), method);
             methodManagerList.add(methodManager);
-
         }
         return methodManagerList;
     }

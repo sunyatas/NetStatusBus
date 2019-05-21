@@ -16,8 +16,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.sunchen.sample.Main2Activity"></activity>
-        <activity android:name="com.sunchen.sample.MainActivity">
+        <activity
+            android:name="com.sunchen.sample.Main2Activity"
+            android:label="@string/hello_blank_fragment">
+
+        </activity>
+        <activity
+            android:name="com.sunchen.sample.MainActivity"
+            android:label="@string/hello_blank_activity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

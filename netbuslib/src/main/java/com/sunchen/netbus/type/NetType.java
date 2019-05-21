@@ -9,8 +9,7 @@ package com.sunchen.netbus.type;
  */
 
 public enum NetType {
-    //只要有网络
-    AUTO,
+
     //wifi网络
     WIFI,
     //没有任何网络
