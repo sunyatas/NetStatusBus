@@ -60,8 +60,6 @@ public class NetStatusBus {
 
     }
 
-    private ConnectivityManager.NetworkCallback networkCallback;
-
     public void register(Object mContext) {
         if (application == null) {
             throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");

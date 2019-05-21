@@ -9,11 +9,10 @@ package com.sunchen.netbus.type;
  */
 
 public enum NetType {
-
     //wifi网络
     WIFI,
-    //没有任何网络
-    NONE,
     //移动网络
-    MOBILE
+    MOBILE,
+    //没有任何网络
+    NONE
 }

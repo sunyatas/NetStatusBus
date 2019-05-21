@@ -55,7 +55,6 @@ public class BlankFragment extends Fragment {
                 break;
             default:
         }
-
     }
 
     @Override
