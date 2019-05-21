@@ -19,7 +19,7 @@ NetStateBus 是一个可以无缝进行网络状态监听的框架，使用简�
 1. 通过 Gradle 添加依赖：
 
 ```groovy
-implementation 'com.sunchen:netstatusbus:0.1.3'
+implementation 'com.sunchen:netstatusbus:0.1.4'
 ```
 
 
@@ -54,10 +54,9 @@ implementation 'com.sunchen:netstatusbus:0.1.3'
 4. 声明你的订阅方法，在该方法中可以监听到网络状态的变更：
 
 ```java
-@NetSubscribe(netType = NetType.AUTO)
- public void doSometing(NetType netType) {
- 			Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<activity1");
-      tvTips.setText("MainActivit当前网络状态>>>>" + netType.name());
+@NetSubscribe(mode = Mode.WIFI_CONNECT)
+ public void doSometing() {
+      tvTips.setText("已连接到wifi");
  }
 ```
 
@@ -65,16 +64,16 @@ implementation 'com.sunchen:netstatusbus:0.1.3'
 
 ## 注意事项
 
-订阅方法必须填写一个`NetType`参数，可以通过`NetType`的值来判断当前网络类型。
+订阅方法可以**选填**一个`NetType`参数，可以通过`NetType`的值来判断当前网络类型。
 
-#### `@NetSubscribe `中 `NetType`的类型： 
+#### `@NetSubscribe `中 `Mode`的类型： 
 
-#### `NetType.AUTO`
+#### `Mode.AUTO`
 
  这是默认值，任何网络状态发生变化，该类型订阅者都会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
-@NetSubscribe(netType = NetType.AUTO)
+@NetSubscribe(mode = Mode.AUTO)
 public void netChange(NetType netType) {
     Log.d(Constrants.LOG_TAG, netType.name());
 }
@@ -85,31 +84,58 @@ public void netChange(NetType netType) {
  指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
-// 当 wifi 连接时，或者没有网络时会回调此方法
-@NetSubscribe(netType = NetType.WIFI)
+// 当 wifi 连接和失去连接时都被调用
+@NetSubscribe(mode = Mode.WIFI)
 public void netChange(NetType netType) {
     Log.d(Constrants.LOG_TAG, netType.name());
 }
 ```
+
+#### `NetType.WIFI_CONNECT`
+
+ 指定只有在由 WIFI 改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
+
+```java
+// 只有当 wifi 连接时都被调用
+@NetSubscribe(mode = Mode.WIFI_CONNECT)
+public void netChange(NetType netType) {
+    Log.d(Constrants.LOG_TAG, netType.name());
+}
+```
+
 
 #### `NetType.MOBILE`
 
  指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
-// 当正在使用移动网络时，或者没有网络时会回调此方法
-@NetSubscribe(netType = NetType.MOBILE)
+// 当移动网络连接和失去连接时都被调用
+@NetSubscribe(mode = Mode.MOBILE)
 public void netChange(NetType netType) {
     Log.d(Constrants.LOG_TAG, netType.name());
 }
 ```
 
-#### `NetType.NONE`
+#### `NetType.MOBILE _CONNECT`
 
- 指定只有当网络丢失时，该类型订阅者才会被回调。
+ 指定只有在由移动网络改变引发的网络状态变化的情况下，该类型订阅者会被回调。同时会传入`NetType`参数告知你当前的网络类型，示例如下：
 
 ```java
-@NetSubscribe(netType = NetType.NONE)
+// 当移动网络连接和失去连接时都被调用
+@NetSubscribe(mode = Mode.MOBILE _CONNECT)
+public void netChange(NetType netType) {
+    Log.d(Constrants.LOG_TAG, netType.name());
+}
+```
+
+
+#### `NetType.NONE`
+
+ 只有当网络丢失时，该类型订阅者才会被回调。
+
+```java
+// 只有当网络丢失时，该类型订阅者才会被回调。
+@NetSubscribe(mode = Mode.NONE)
 public void netChange(NetType netType) {
     Log.d(Constrants.LOG_TAG, netType.name());
 }
