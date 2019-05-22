@@ -118,30 +118,39 @@ public class NetStatusReceiver {
         Class<?> clazz = mContext.getClass();
         Method[] methods = clazz.getMethods();
 
-        for (Method method : methods) {
-            NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
-            if (netSubscribe == null) {
-                continue;
+        while (clazz != null) {
+            String name = clazz.getName();
+            if (name.startsWith("java.") || name.startsWith(".android")
+                    || name.startsWith("javax.") || name.startsWith("androidx.")) {
+                break;
             }
-            //注解方法校验返回值
-            Type genericReturnType = method.getGenericReturnType();
-            if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
-                throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
-            }
+            for (Method method : methods) {
+                NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
+                if (netSubscribe == null) {
+                    continue;
+                }
+                //注解方法校验返回值
+                Type genericReturnType = method.getGenericReturnType();
+                if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
+                    throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
+                }
 
-            //判断参数
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            MethodManager methodManager;
-            if (parameterTypes.length == 0) {
-                methodManager = new MethodManager(null, netSubscribe.mode(), method);
-            } else if (parameterTypes.length == 1) {
-                methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
-            } else {
-                throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
-            }
+                //判断参数
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                MethodManager methodManager;
+                if (parameterTypes.length == 0) {
+                    methodManager = new MethodManager(null, netSubscribe.mode(), method);
+                } else if (parameterTypes.length == 1) {
+                    methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
+                } else {
+                    throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
+                }
 
-            methodManagerList.add(methodManager);
+                methodManagerList.add(methodManager);
+            }
+            clazz = clazz.getSuperclass();
         }
+
         return methodManagerList;
     }
 
