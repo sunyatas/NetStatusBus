@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NetworkStateBus</string>
+    <string name="app_name">NetworkStatusBus</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">这里是一个fragment</string>

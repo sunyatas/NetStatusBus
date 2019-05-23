@@ -66,7 +66,6 @@ public class NetStatusReceiver {
                     case MOBILE:
                         if (mNetType == NetType.MOBILE || mNetType == NetType.NONE)
                             invoke(subscribeMethod, subscribeClazz, mNetType);
-
                         break;
 
                     case MOBILE_CONNECT:

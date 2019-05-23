@@ -21,8 +21,7 @@
             android:label="@string/hello_blank_fragment">
 
         </activity>
-        <activity
-            android:name="com.sunchen.sample.MainActivity">
+        <activity android:name="com.sunchen.sample.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

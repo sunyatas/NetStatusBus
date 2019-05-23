@@ -44,6 +44,7 @@ public class BlankFragment extends Fragment {
                 tvTips.setText("网络连接中断...");
                 imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_no));
                 break;
+
             case WIFI:
                 tvTips.setText("wifi已连接");
                 imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi));
@@ -53,6 +54,7 @@ public class BlankFragment extends Fragment {
                 tvTips.setText("移动网络已连接");
                 imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_mobile));
                 break;
+
             default:
         }
     }
