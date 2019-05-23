@@ -149,9 +149,3 @@ public void netChange() {
 ## 联系方式
 
 QQ Email: [sunchen.cc@qq.com](sunchen.cc@qq.com)
-
-[微博](http://weibo.com/sunchen1996)小伙伴们可以互相关注一波哈
-
-### 微信
-
-![](http://image.sunchen.cc/wxer.png)
