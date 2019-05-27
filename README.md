@@ -147,5 +147,5 @@ public void netChange() {
 如果确实需要满足在 Android 5.0 以下机型中进行运行，请联系我，我者会根据反馈考虑是否重新加入广播进行监听网络事件。
 
 ## 联系方式
-
+[微博](http://weibo.com/sunchen1996 )
 QQ Email: [sunchen.cc@qq.com](sunchen.cc@qq.com)
