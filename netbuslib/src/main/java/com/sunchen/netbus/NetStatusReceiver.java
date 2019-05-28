@@ -115,14 +115,7 @@ public class NetStatusReceiver {
         List<MethodManager> methodManagerList = new ArrayList<>();
 //        获取到activity fragment
         Class<?> clazz = mContext.getClass();
-        Method[] methods = clazz.getMethods();
-
-        while (clazz != null) {
-            String name = clazz.getName();
-            if (name.startsWith("java.") || name.startsWith(".android")
-                    || name.startsWith("javax.") || name.startsWith("androidx.")) {
-                break;
-            }
+        Method[] methods = clazz.getDeclaredMethods();
             for (Method method : methods) {
                 NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
                 if (netSubscribe == null) {
@@ -147,8 +140,6 @@ public class NetStatusReceiver {
 
                 methodManagerList.add(methodManager);
             }
-            clazz = clazz.getSuperclass();
-        }
 
         return methodManagerList;
     }

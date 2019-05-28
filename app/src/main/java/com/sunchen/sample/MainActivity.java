@@ -12,7 +12,7 @@ import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.Mode;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener {
     private TextView tvTips;
     private ImageView imgNetStatus;
 
@@ -23,7 +23,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvTips = findViewById(R.id.tv_tips);
         imgNetStatus = findViewById(R.id.img_net_status);
         findViewById(R.id.btn_to_setting).setOnClickListener(this);
-        NetStatusBus.getInstance().register(this);
     }
 
     @Override
@@ -63,14 +62,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onStop();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        NetStatusBus.getInstance().unregister(this);
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
 }
