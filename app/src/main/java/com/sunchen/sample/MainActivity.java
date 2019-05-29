@@ -1,13 +1,9 @@
 package com.sunchen.sample;
-
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.sunchen.netbus.NetStatusBus;
 import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.Mode;
 
@@ -55,11 +51,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     public void noneNet() {
         tvTips.setText("网络连接中断...");
         imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_no));
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
     }
 
 }
