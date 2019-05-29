@@ -19,7 +19,7 @@ NetStateBus 是一个可以无缝进行网络状态监听的框架，使用简�
 1. 通过 Gradle 添加依赖：
 
 ```groovy
-implementation 'com.sunchen:netstatusbus:0.1.4'
+implementation 'com.sunchen:netstatusbus:0.1.5'
 ```
 
 
