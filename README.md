@@ -150,3 +150,6 @@ public void netChange() {
 [微博](http://weibo.com/sunchen1996 )
 
 QQ Email: [sunchen.cc@qq.com](sunchen.cc@qq.com)
+
+
+适配targetSdk33

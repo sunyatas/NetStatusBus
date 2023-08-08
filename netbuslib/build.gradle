@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 28
@@ -18,29 +17,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
-    //根据Library名称生存jar包到build目录下
-    //可根据自己需求更改
-    task againMakeJar(type: Copy) {
-        def name = project.name //Library名称
-        delete 'libs/' + name + '.jar' //删除之前的旧jar包
-        from('build/intermediates/packaged-classes/release/') //从这个目录下取出默认jar包
-        into('libs/') //将jar包输出到指定目录下
-        include('classes.jar')
-        rename('classes.jar', name + '.jar') //自定义jar包的名字
-    }
-    againMakeJar.dependsOn(build)
 }
 
 dependencies {
     implementation 'com.android.support:appcompat-v7:28.0.0'
-}
-
-publish {
-    userOrg = 'sunchen'
-    groupId = 'com.sunchen'
-    artifactId = 'netstatusbus'
-    publishVersion = '0.1.5'
-    desc = 'Simplify the process of network monitoring, make the code more concise and efficient'
-    website = 'https://github.com/sunyatas/NetStatusBus'
 }
