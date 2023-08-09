@@ -131,7 +131,7 @@ public void netChange() {
 
 #### `Mode.NONE`
 
- 只有当网络丢失时，该类型订阅者才会被回调。
+ 只有当网络丢失时，该类型订阅者才会 被回调。
 
 ```java
 // 只有当网络丢失时，该类型订阅者才会被回调。
@@ -153,3 +153,5 @@ QQ Email: [sunchen.cc@qq.com](sunchen.cc@qq.com)
 
 
 适配targetSdk33
+
+haha 
