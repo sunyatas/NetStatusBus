@@ -65,6 +65,10 @@ implementation 'com.sunchen:netstatusbus:0.1.5'
 
 ## 注意事项
 
+所有订阅方法**都在主线程回调**，可以直接在其中更新 UI；`register`/`unregister` 可在任意线程调用，内部使用线程安全的容器保存订阅者。注册时会立即以当前已知的网络状态回调一次。
+
+`init` 可重复调用，网络回调只会注册一次。
+
 订阅方法**可以选填**一个`NetType`参数，可以通过`NetType`的值来判断当前网络类型。
 
  `@NetSubscribe `中可以指定 `mode `用来设置订阅的模式，mode类型如下：

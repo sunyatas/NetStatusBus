@@ -1,15 +1,19 @@
 package com.sunchen.netbus;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.NetType;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   18:31.
@@ -17,143 +21,194 @@ import java.util.Set;
  * God bless me only
  * <p>
  * NetStatusReceiver
+ * <p>
+ * 订阅者保存在线程安全的 Map 中，所有订阅方法统一在主线程回调。
  */
 
 public class NetStatusReceiver {
 
-    private NetType mNetType;//网络类型
+    /**
+     * 订阅方法的执行线程，默认为主线程
+     */
+    interface Dispatcher {
+        void dispatch(Runnable runnable);
+    }
 
-    private Map<Object, List<MethodManager>> networkList;
+    private volatile NetType mNetType;//网络类型
 
+    private final ConcurrentMap<Object, List<MethodManager>> networkList = new ConcurrentHashMap<>();
+
+    private final Dispatcher dispatcher;
 
     protected NetStatusReceiver() {
-        mNetType = NetType.NONE;
-        networkList = new HashMap<>();
+        this(new MainThreadDispatcher());
+    }
+
+    NetStatusReceiver(Dispatcher dispatcher) {
+        this.mNetType = NetType.NONE;
+        this.dispatcher = dispatcher;
     }
 
     /**
-     * 分发
+     * 分发（可在任意线程调用，订阅方法会切换到主线程执行）
      */
-    protected void post(NetType netType) {
-        //所有的注册类
-        Set<Object> subscribeClazzSet = networkList.keySet();
+    protected void post(final NetType netType) {
         this.mNetType = netType;
-        for (Object subscribeClazz : subscribeClazzSet) {
-            List<MethodManager> methodManagerList = networkList.get(subscribeClazz);
-            executeInvoke(subscribeClazz, methodManagerList);
-        }
+        dispatcher.dispatch(new Runnable() {
+            @Override
+            public void run() {
+                for (Map.Entry<Object, List<MethodManager>> entry : networkList.entrySet()) {
+                    executeInvoke(entry.getKey(), entry.getValue(), netType);
+                }
+            }
+        });
     }
 
-    private void executeInvoke(Object subscribeClazz, List<MethodManager> methodManagerList) {
-        if (methodManagerList != null) {
-            for (MethodManager subscribeMethod : methodManagerList) {
+    private void executeInvoke(Object subscriber, List<MethodManager> methodManagerList, NetType netType) {
+        if (methodManagerList == null) {
+            return;
+        }
+        // 分发过程中订阅者可能已被注销
+        if (!networkList.containsKey(subscriber)) {
+            return;
+        }
+        for (MethodManager subscribeMethod : methodManagerList) {
+            switch (subscribeMethod.getMode()) {
+                case AUTO:
+                    invoke(subscribeMethod, subscriber, netType);
+                    break;
 
-                switch (subscribeMethod.getMode()) {
-                    case AUTO:
-                        invoke(subscribeMethod, subscribeClazz, mNetType);
-                        break;
+                case WIFI:
+                    if (netType == NetType.WIFI || netType == NetType.NONE)
+                        invoke(subscribeMethod, subscriber, netType);
+                    break;
 
-                    case WIFI:
-                        if (mNetType == NetType.WIFI || mNetType == NetType.NONE)
-                            invoke(subscribeMethod, subscribeClazz, mNetType);
-                        break;
+                case WIFI_CONNECT:
+                    if (netType == NetType.WIFI)
+                        invoke(subscribeMethod, subscriber, netType);
+                    break;
 
-                    case WIFI_CONNECT:
-                        if (mNetType == NetType.WIFI)
-                            invoke(subscribeMethod, subscribeClazz, mNetType);
-                        break;
+                case MOBILE:
+                    if (netType == NetType.MOBILE || netType == NetType.NONE)
+                        invoke(subscribeMethod, subscriber, netType);
+                    break;
 
-                    case MOBILE:
-                        if (mNetType == NetType.MOBILE || mNetType == NetType.NONE)
-                            invoke(subscribeMethod, subscribeClazz, mNetType);
-                        break;
+                case MOBILE_CONNECT:
+                    if (netType == NetType.MOBILE)
+                        invoke(subscribeMethod, subscriber, netType);
+                    break;
 
-                    case MOBILE_CONNECT:
-                        if (mNetType == NetType.MOBILE) {
-                            invoke(subscribeMethod, subscribeClazz, mNetType);
-                        }
-                        break;
+                case NONE:
+                    if (netType == NetType.NONE)
+                        invoke(subscribeMethod, subscriber, netType);
+                    break;
 
-                    case NONE:
-                        if (mNetType == NetType.NONE)
-                            invoke(subscribeMethod, subscribeClazz, mNetType);
-
-                    default:
-                }
+                default:
+                    break;
             }
         }
     }
 
-    private void invoke(MethodManager subscribeMethod, Object subscribeClazz, NetType netType) {
-
+    private void invoke(MethodManager subscribeMethod, Object subscriber, NetType netType) {
         Method execute = subscribeMethod.getMethod();
         try {
             //有参数时
             if (subscribeMethod.getParameterClazz() != null) {
-                if (subscribeMethod.getParameterClazz().isAssignableFrom(mNetType.getClass())) {
-                    execute.invoke(subscribeClazz, netType);
+                if (subscribeMethod.getParameterClazz().isAssignableFrom(netType.getClass())) {
+                    execute.invoke(subscriber, netType);
                 }
             } else {
-                execute.invoke(subscribeClazz);
+                execute.invoke(subscriber);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    protected void registerObserver(Object mContext) {
+    protected void registerObserver(final Object mContext) {
         List<MethodManager> methodList = networkList.get(mContext);
         if (methodList == null) {
-//        开始添加
-            methodList = findAnnotationMethod(mContext);
-            networkList.put(mContext, methodList);
+            // 开始添加
+            methodList = Collections.unmodifiableList(findAnnotationMethod(mContext));
+            List<MethodManager> previous = networkList.putIfAbsent(mContext, methodList);
+            if (previous != null) {
+                methodList = previous;
+            }
         }
-        executeInvoke(mContext, networkList.get(mContext));
+        // 注册后立即回调一次当前网络状态
+        final List<MethodManager> finalList = methodList;
+        final NetType current = mNetType;
+        dispatcher.dispatch(new Runnable() {
+            @Override
+            public void run() {
+                executeInvoke(mContext, finalList, current);
+            }
+        });
     }
 
     private List<MethodManager> findAnnotationMethod(Object mContext) {
         List<MethodManager> methodManagerList = new ArrayList<>();
-//        获取到activity fragment
+        // 获取到activity fragment
         Class<?> clazz = mContext.getClass();
         Method[] methods = clazz.getDeclaredMethods();
-            for (Method method : methods) {
-                NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
-                if (netSubscribe == null) {
-                    continue;
-                }
-                //注解方法校验返回值
-                Type genericReturnType = method.getGenericReturnType();
-                if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
-                    throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
-                }
-
-                //判断参数
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                MethodManager methodManager;
-                if (parameterTypes.length == 0) {
-                    methodManager = new MethodManager(null, netSubscribe.mode(), method);
-                } else if (parameterTypes.length == 1) {
-                    methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
-                } else {
-                    throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
-                }
-
-                methodManagerList.add(methodManager);
+        for (Method method : methods) {
+            NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
+            if (netSubscribe == null) {
+                continue;
             }
+            //注解方法校验返回值
+            Type genericReturnType = method.getGenericReturnType();
+            if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
+                throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
+            }
+
+            //判断参数
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            MethodManager methodManager;
+            if (parameterTypes.length == 0) {
+                methodManager = new MethodManager(null, netSubscribe.mode(), method);
+            } else if (parameterTypes.length == 1) {
+                methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
+            } else {
+                throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
+            }
+
+            methodManagerList.add(methodManager);
+        }
 
         return methodManagerList;
     }
 
     public void unRegisterObserver(Object mContext) {
-        if (!networkList.isEmpty()) {
+        if (mContext != null) {
             networkList.remove(mContext);
         }
     }
 
     public void unRegisterAllObserver() {
-        if (!networkList.isEmpty()) {
-            networkList.clear();
-            networkList = null;
+        networkList.clear();
+    }
+
+    /**
+     * 当前已知的网络类型
+     */
+    NetType getNetType() {
+        return mNetType;
+    }
+
+    /**
+     * 将订阅方法切换到主线程执行；若当前已在主线程则直接执行
+     */
+    private static final class MainThreadDispatcher implements Dispatcher {
+        private final Handler handler = new Handler(Looper.getMainLooper());
+
+        @Override
+        public void dispatch(Runnable runnable) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                runnable.run();
+            } else {
+                handler.post(runnable);
+            }
         }
     }
 }
