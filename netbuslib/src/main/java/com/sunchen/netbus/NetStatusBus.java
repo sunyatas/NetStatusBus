@@ -17,8 +17,9 @@ import android.os.Build;
 
 public class NetStatusBus {
 
-    private Application application;
-    private NetStatusReceiver receiver;
+    private volatile Application application;
+    private final NetStatusReceiver receiver;
+    private ConnectivityManager.NetworkCallback networkCallback;
 
     public NetStatusBus() {
         receiver = new NetStatusReceiver();
@@ -41,23 +42,25 @@ public class NetStatusBus {
 
 
     @SuppressLint("MissingPermission")
-    public void init(Application application) {
+    public synchronized void init(Application application) {
         if (application == null) {
             throw new IllegalArgumentException("application is empty");
         }
         this.application = application;
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-            ConnectivityManager.NetworkCallback networkCallback = new NetworkCallbackImpl(receiver);
-            NetworkRequest.Builder builder = new NetworkRequest.Builder();
-            NetworkRequest request = builder.build();
-            ConnectivityManager manager = (ConnectivityManager) NetStatusBus
-                    .getInstance().getApplication()
+        // 重复调用 init 时不再重复注册网络回调
+        if (networkCallback != null) {
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ConnectivityManager manager = (ConnectivityManager) application
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             if (manager != null) {
-                manager.registerNetworkCallback(request, networkCallback);
+                ConnectivityManager.NetworkCallback callback = new NetworkCallbackImpl(receiver);
+                NetworkRequest request = new NetworkRequest.Builder().build();
+                manager.registerNetworkCallback(request, callback);
+                networkCallback = callback;
             }
         }
-
     }
 
     public void register(Object mContext) {
