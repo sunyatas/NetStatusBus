@@ -1,8 +1,15 @@
-*.iml
-.gradle
+# Gradle
+.gradle/
+build/
 /local.properties
-.DS_Store
-/build
+
+# Android Studio / IntelliJ
+*.iml
+.idea/
 /captures
-.externalNativeBuild
-.idea
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
