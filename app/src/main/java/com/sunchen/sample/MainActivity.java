@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.Mode;
 
@@ -32,7 +34,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @NetSubscribe(mode = Mode.WIFI_CONNECT)
     public void mobileChange() {
         tvTips.setText("wifi已连接");
-        imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi));
+        imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_wifi));
     }
 
     /**
@@ -41,7 +43,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @NetSubscribe(mode = Mode.MOBILE_CONNECT)
     public void wifiChange() {
         tvTips.setText("移动网络已连接");
-        imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_mobile));
+        imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_mobile));
     }
 
     /**
@@ -50,7 +52,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @NetSubscribe(mode = Mode.NONE)
     public void noneNet() {
         tvTips.setText("网络连接中断...");
-        imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_no));
+        imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_no));
     }
 
 }

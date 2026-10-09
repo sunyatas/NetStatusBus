@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import com.sunchen.netbus.NetStatusBus;
 import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.NetType;
@@ -42,17 +44,17 @@ public class BlankFragment extends Fragment {
         switch (netType) {
             case NONE:
                 tvTips.setText("网络连接中断...");
-                imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_no));
+                imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_no));
                 break;
 
             case WIFI:
                 tvTips.setText("wifi已连接");
-                imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_wifi));
+                imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_wifi));
                 break;
 
             case MOBILE:
                 tvTips.setText("移动网络已连接");
-                imgNetStatus.setImageDrawable(getResources().getDrawable(R.drawable.ic_mobile));
+                imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_mobile));
                 break;
 
             default:
