@@ -4,7 +4,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 
 import com.sunchen.netbus.type.NetType;
 import com.sunchen.netbus.utils.NetworkUtils;
