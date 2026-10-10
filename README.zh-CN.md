@@ -44,7 +44,7 @@ dependencies {
 }
 ```
 
-> 目前还没有打正式版本标签，所以这里使用 `master-SNAPSHOT`（即 `master` 最新代码）。也可以换成某个提交的短哈希来固定版本，例如 `com.github.sunyatas:NetStatusBus:9334342`。发布正式版本后，请改用对应的版本标签。
+> 目前还没有打正式版本标签，所以这里使用 `master-SNAPSHOT`（即 `master` 最新代码）。也可以换成某个提交的短哈希来固定版本，例如 `com.github.sunyatas:NetStatusBus:329c932`。发布正式版本后，请改用对应的版本标签。
 
 ### 方式二：从源码构建
 

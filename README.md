@@ -44,7 +44,7 @@ dependencies {
 }
 ```
 
-> No release has been tagged yet, so `master-SNAPSHOT` (latest `master`) is used here. You can also pin a specific commit by replacing it with a short commit hash, e.g. `com.github.sunyatas:NetStatusBus:9334342`. Once a release is tagged, use the tag instead.
+> No release has been tagged yet, so `master-SNAPSHOT` (latest `master`) is used here. You can also pin a specific commit by replacing it with a short commit hash, e.g. `com.github.sunyatas:NetStatusBus:329c932`. Once a release is tagged, use the tag instead.
 
 ### Option 2: Build from source
 
