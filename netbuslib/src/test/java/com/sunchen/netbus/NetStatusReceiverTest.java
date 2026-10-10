@@ -195,4 +195,36 @@ public class NetStatusReceiverTest {
             throw new AssertionError(error.get());
         }
     }
+
+    public static class WifiSubscriber {
+        final java.util.List<String> calls = new java.util.ArrayList<>();
+
+        @NetSubscribe(mode = Mode.WIFI)
+        public void onWifi(NetType type) {
+            calls.add("WIFI:" + type);
+        }
+    }
+
+    @Test
+    public void wifiModeIgnoresMobileDrop() {
+        WifiSubscriber s = new WifiSubscriber();
+        receiver.post(NetType.MOBILE);
+        receiver.registerObserver(s);
+        s.calls.clear();
+        receiver.post(NetType.NONE);
+        assertTrue(s.calls.isEmpty());
+        receiver.post(NetType.WIFI);
+        receiver.post(NetType.NONE);
+        assertEquals(java.util.Arrays.asList("WIFI:WIFI", "WIFI:NONE"), s.calls);
+    }
+
+    @Test
+    public void postIfChangedSkipsDuplicates() {
+        WifiSubscriber s = new WifiSubscriber();
+        receiver.registerObserver(s);
+        s.calls.clear();
+        receiver.postIfChanged(NetType.WIFI);
+        receiver.postIfChanged(NetType.WIFI);
+        assertEquals(1, s.calls.size());
+    }
 }

@@ -89,6 +89,8 @@ public void netChange(NetType netType) {
 
  由 WIFI 改变引发的网络状态变化的情况下（wifi连接和断开），该类型订阅者会被调用。
 
+> 行为变更：此前只要网络变为 NONE（例如移动网络断开）`Mode.WIFI` 订阅者也会被调用；现在只有 WIFI 本身连上或断开（之前是 WIFI）时才会回调。`Mode.MOBILE` 同理。
+
 ```java
 // 当 wifi 连接和失去连接时都被调用
 @NetSubscribe(mode = Mode.WIFI)

@@ -51,6 +51,7 @@ public class NetStatusBus {
         if (networkCallback != null) {
             return;
         }
+        receiver.setInitialNetType(com.sunchen.netbus.utils.NetworkUtils.getNetType());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ConnectivityManager manager = (ConnectivityManager) application
                     .getSystemService(Context.CONNECTIVITY_SERVICE);

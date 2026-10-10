@@ -53,18 +53,48 @@ public class NetStatusReceiver {
      * 分发（可在任意线程调用，订阅方法会切换到主线程执行）
      */
     protected void post(final NetType netType) {
-        this.mNetType = netType;
+        final NetType previous;
+        synchronized (this) {
+            previous = this.mNetType;
+            this.mNetType = netType;
+        }
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
                 for (Map.Entry<Object, List<MethodManager>> entry : networkList.entrySet()) {
-                    executeInvoke(entry.getKey(), entry.getValue(), netType);
+                    executeInvoke(entry.getKey(), entry.getValue(), netType, previous);
                 }
             }
         });
     }
 
+    /**
+     * 仅当网络类型发生变化时才分发，避免系统多次回调造成重复通知
+     */
+    protected void postIfChanged(NetType netType) {
+        synchronized (this) {
+            if (netType == mNetType) {
+                return;
+            }
+        }
+        post(netType);
+    }
+
+    /**
+     * 设置初始网络类型（不分发）
+     */
+    void setInitialNetType(NetType netType) {
+        this.mNetType = netType;
+    }
+
     private void executeInvoke(Object subscriber, List<MethodManager> methodManagerList, NetType netType) {
+        executeInvoke(subscriber, methodManagerList, netType, netType);
+    }
+
+    /**
+     * @param previous 变化前的网络类型。WIFI/MOBILE 模式下，只有对应网络本身连上或断开时才回调（#7）
+     */
+    private void executeInvoke(Object subscriber, List<MethodManager> methodManagerList, NetType netType, NetType previous) {
         if (methodManagerList == null) {
             return;
         }
@@ -79,7 +109,7 @@ public class NetStatusReceiver {
                     break;
 
                 case WIFI:
-                    if (netType == NetType.WIFI || netType == NetType.NONE)
+                    if (netType == NetType.WIFI || previous == NetType.WIFI)
                         invoke(subscribeMethod, subscriber, netType);
                     break;
 
@@ -89,7 +119,7 @@ public class NetStatusReceiver {
                     break;
 
                 case MOBILE:
-                    if (netType == NetType.MOBILE || netType == NetType.NONE)
+                    if (netType == NetType.MOBILE || previous == NetType.MOBILE)
                         invoke(subscribeMethod, subscriber, netType);
                     break;
 
