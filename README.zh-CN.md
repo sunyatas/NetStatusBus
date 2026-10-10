@@ -195,3 +195,23 @@ NetworkUtils.openSetting(activity, 0);               // 打开系统 Wi-Fi 设�
 
 **需要注销吗？**
 需要。订阅者在调用 `unregister` 之前一直被强引用持有，请在对应的生命周期回调中注销，避免 Activity 或 Fragment 泄漏。
+
+## 许可证
+
+本项目基于 [Apache License 2.0](LICENSE) 开源。
+
+```
+Copyright 2019-2026 sunyatas
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
