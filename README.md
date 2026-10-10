@@ -1,163 +1,197 @@
-# NetStatusBus [![Download](https://api.bintray.com/packages/sunchen/maven/netstatusbus/images/download.svg)](https://bintray.com/sunchen/maven/netstatusbus/_latestVersion)
+# NetStatusBus
 
-```
-NetStateBus 是一个可以无缝进行网络状态监听的框架，使用简单，具有强解耦，高性能等特性。
-```
+English | [简体中文](README.zh-CN.md)
 
+NetStatusBus is a lightweight Android library for observing network status changes. Annotate a method with `@NetSubscribe`, register the object, and the method is called on the main thread whenever the network changes.
 
+## Features
 
-## 快速体验
+- Annotation-based subscribers: `@NetSubscribe(mode = Mode.X)`, no listeners or broadcast receivers to write
+- Several subscription modes: any change, Wi-Fi only, mobile only, connect-only, or disconnect-only
+- Callbacks always run on the main thread, so you can update the UI directly
+- The current network state is delivered as soon as you register
+- Built on `ConnectivityManager.NetworkCallback` (no deprecated `CONNECTIVITY_ACTION` broadcast)
+- Network type is detected with `NetworkCapabilities` on Android 6.0+
+- Thread-safe `register` / `unregister`; `init` can be called more than once
+- `ACCESS_NETWORK_STATE` permission and R8/ProGuard rules are bundled with the library
 
-![](https://www.pgyer.com/app/qrcode/USYp)
+## Requirements
 
-如果二维码图片不可见，[点我下载Demo体验](https://www.pgyer.com/USYp)
+- `minSdk` 21 (Android 5.0) or higher
+- AndroidX
 
+## Installation
 
+### Option 1: JitPack
 
-## 通过以下方式来使用 NetStatusBus
-
-1. 通过 Gradle 添加依赖：
+Add the JitPack repository to `settings.gradle`:
 
 ```groovy
-implementation 'com.sunchen:netstatusbus:0.1.5'
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
 ```
 
+Add the dependency to your app module's `build.gradle`:
 
-
-2. Application 中初始化 NetStatusBus：
-
-```java
- // 尽可能早的进行这一步操作, 建议在 Application 中完成初始化操作
- NetStatusBus.getInstance().init(this);
+```groovy
+dependencies {
+    implementation 'com.github.sunyatas:NetStatusBus:master-SNAPSHOT'
+}
 ```
 
+> No release has been tagged yet, so `master-SNAPSHOT` (latest `master`) is used here. You can also pin a specific commit by replacing it with a short commit hash, e.g. `com.github.sunyatas:NetStatusBus:9334342`. Once a release is tagged, use the tag instead.
 
+### Option 2: Build from source
 
-3. 根据你的生命周期来注册和注销订阅者，例如：
-
-```java
- @Override
- public void onStart() {
-     super.onStart();
-     NetStatusBus.getInstance().register(this);
- }
-
- @Override
- public void onStop() {
-     super.onStop();
-     NetStatusBus.getInstance().unregister(this);
- }
+```bash
+git clone https://github.com/sunyatas/NetStatusBus.git
 ```
 
+Copy the `netbuslib` module into your project, then add it to `settings.gradle` and your app's dependencies:
 
+```groovy
+// settings.gradle
+include ':netbuslib'
 
-4. 声明你的订阅方法，在该方法中可以监听到网络状态的变更：
-   比如想要监听 wifi 连接的情况
-
-```java
-@NetSubscribe(mode = Mode.WIFI_CONNECT)
- public void doSometing() {
-      tvTips.setText("已连接到wifi");
- }
+// app/build.gradle
+dependencies {
+    implementation project(':netbuslib')
+}
 ```
 
+Alternatively, run `./gradlew :netbuslib:publishToMavenLocal` in this repository and depend on `com.github.sunyatas:netstatusbus:master-SNAPSHOT` from `mavenLocal()`.
 
+## Usage
 
-## 注意事项
+### 1. Initialize in `Application`
 
-所有订阅方法**都在主线程回调**，可以直接在其中更新 UI；`register`/`unregister` 可在任意线程调用，内部使用线程安全的容器保存订阅者。注册时会立即以当前已知的网络状态回调一次。
-
-`init` 可重复调用，网络回调只会注册一次。
-
-订阅方法**可以选填**一个`NetType`参数，可以通过`NetType`的值来判断当前网络类型。
-
- `@NetSubscribe `中可以指定 `mode `用来设置订阅的模式，mode类型如下：
-
-#### `Mode.AUTO`
-
- 这是默认值，任何网络状态发生变化，该类型订阅者都会被调用。
+Call `init` as early as possible, ideally in `Application.onCreate()`. Calling it again is harmless: the network callback is only registered once.
 
 ```java
-//所有网络变化都会被调用，可以通过 NetType 来判断当前网络具体状态
+public class App extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        NetStatusBus.getInstance().init(this);
+    }
+}
+```
+
+### 2. Register and unregister subscribers
+
+Register in line with your component's lifecycle. Calling `register` before `init` throws an exception.
+
+```java
+@Override
+protected void onStart() {
+    super.onStart();
+    NetStatusBus.getInstance().register(this);
+}
+
+@Override
+protected void onStop() {
+    super.onStop();
+    NetStatusBus.getInstance().unregister(this);
+}
+```
+
+`NetStatusBus.getInstance().unregisterAllObserver()` removes every subscriber at once.
+
+### 3. Declare subscriber methods
+
+```java
 @NetSubscribe(mode = Mode.AUTO)
-public void netChange(NetType netType) {
-    Log.d(Constrants.LOG_TAG, netType.name());
+public void onNetChanged(NetType netType) {
+    switch (netType) {
+        case WIFI:   tvStatus.setText("Wi-Fi");   break;
+        case MOBILE: tvStatus.setText("Mobile");  break;
+        case NONE:   tvStatus.setText("Offline"); break;
+    }
 }
-```
 
-#### `Mode.WIFI`
-
- 由 WIFI 改变引发的网络状态变化的情况下（wifi连接和断开），该类型订阅者会被调用。
-
-> 行为变更：此前只要网络变为 NONE（例如移动网络断开）`Mode.WIFI` 订阅者也会被调用；现在只有 WIFI 本身连上或断开（之前是 WIFI）时才会回调。`Mode.MOBILE` 同理。
-
-```java
-// 当 wifi 连接和失去连接时都被调用
-@NetSubscribe(mode = Mode.WIFI)
-public void wifiChange(NetType netType) {
-    Log.d(Constrants.LOG_TAG, netType.name());
-}
-```
-
-#### `Mode.WIFI_CONNECT`
-
- 仅在 WIFI 成功连接后，该类型订阅者会被调用。
-
-```java
-// 只有当 wifi 连接时都被调用
-@NetSubscribe(mode = Mode.WIFI_CONNECT)
-public void wifiChange() {
-    Log.d(Constrants.LOG_TAG, "连接到wifi网络");
-}
-```
-
-#### `Mode.MOBILE`
-
- 由移动网络改变引发的网络状态变化的情况时（移动网络连接和断开），该类型订阅者会被回调。
-
-```java
-// 当移动网络连接和失去连接时都会被调用
-@NetSubscribe(mode = Mode.MOBILE)
-public void netChange(NetType netType) {
-    Log.d(Constrants.LOG_TAG, netType.name());
-}
-```
-
-#### `Mode.MOBILE _CONNECT`
-
- 仅在移动网络成功连接后，会被回调。
-
-```java
-// 当移动网络连接时调用
-@NetSubscribe(mode = Mode.MOBILE _CONNECT)
-public void netChange() {
-    Log.d(Constrants.LOG_TAG, "连接到移动网络");
-}
-```
-
-#### `Mode.NONE`
-
- 只有当网络丢失时，该类型订阅者才会 被回调。
-
-```java
-// 只有当网络丢失时，该类型订阅者才会被回调。
 @NetSubscribe(mode = Mode.NONE)
-public void netChange() {
-    Log.d(Constrants.LOG_TAG, "失去网络");
+public void onNetLost() {
+    Toast.makeText(this, "Network lost", Toast.LENGTH_SHORT).show();
 }
 ```
 
-注意：由于Android 在7.0以后出于性能及安全的考虑对广播做了大量的限制，监听网络连接的广播在7.0以后的系统上也只有动态注册才能生效。
-本库出于性能考虑决定使用 `NetworkCallback` 类来代替广播实现网络状态变化监听。因此需要您将`minSdkVersion` 升级为21及以上。
+A subscriber method must:
 
-如果确实需要满足在 Android 5.0 以下机型中进行运行，请联系我，我者会根据反馈考虑是否重新加入广播进行监听网络事件。
+- be `public` and return `void`
+- take either no parameters or a single `NetType` parameter
+- be declared in the registered object's own class (methods inherited from a superclass are not found)
 
-## 联系方式
-[微博](http://weibo.com/sunchen1996 )
+Kotlin:
 
-QQ Email: [sunchen.cc@qq.com](sunchen.cc@qq.com)
+```kotlin
+@NetSubscribe(mode = Mode.WIFI)
+fun onWifiChanged(netType: NetType) {
+    binding.status.text = if (netType == NetType.WIFI) "Wi-Fi connected" else "Wi-Fi disconnected"
+}
+```
 
+## Subscription modes
 
-适配targetSdk33
+`@NetSubscribe` defaults to `Mode.AUTO`.
 
-haha 
+| Mode | Called when |
+| --- | --- |
+| `Mode.AUTO` | The network type changes in any way |
+| `Mode.WIFI` | Wi-Fi itself connects or disconnects |
+| `Mode.WIFI_CONNECT` | The network becomes Wi-Fi |
+| `Mode.MOBILE` | Mobile data itself connects or disconnects |
+| `Mode.MOBILE_CONNECT` | The network becomes mobile data |
+| `Mode.NONE` | The network is lost |
+
+`Mode.WIFI` and `Mode.MOBILE` only react to their own network. For example, losing mobile data does not notify `Mode.WIFI` subscribers, and switching from Wi-Fi to mobile data notifies both (`Mode.WIFI` receives `MOBILE` because Wi-Fi went away).
+
+> Behavior change: earlier versions also notified `Mode.WIFI` / `Mode.MOBILE` subscribers whenever the network became `NONE`, no matter which network was lost.
+
+## Network types
+
+`NetType` has three values:
+
+| NetType | Meaning |
+| --- | --- |
+| `NetType.WIFI` | Connected through Wi-Fi |
+| `NetType.MOBILE` | Connected through mobile data |
+| `NetType.NONE` | No usable network |
+
+## Utilities
+
+`com.sunchen.netbus.utils.NetworkUtils` (requires `init` to have been called):
+
+```java
+NetType type = NetworkUtils.getNetType();            // current network type
+boolean online = NetworkUtils.isNetworkAvailable();  // whether any network is connected
+NetworkUtils.openSetting(activity, 0);               // open the system Wi-Fi settings
+```
+
+`openSetting` starts the settings screen with `context.startActivity`, so pass an `Activity`. The `requestCode` argument is currently not used.
+
+## How it works
+
+1. `init` registers a `ConnectivityManager.NetworkCallback` and records the current network type.
+2. On `onAvailable`, `onLost` and `onCapabilitiesChanged`, the library recalculates the type of the active network (ignoring a network that was just lost) and only dispatches when the type actually changes.
+3. `register` scans the object for `@NetSubscribe` methods with reflection and stores them in a thread-safe map. Each subscriber is then invoked on the main thread according to its mode and the previous/current network types.
+
+## Permissions and R8/ProGuard
+
+- `android.permission.ACCESS_NETWORK_STATE` is declared in the library manifest and merged into your app automatically.
+- The library ships consumer R8/ProGuard rules that keep `@NetSubscribe` methods and the `Mode`/`NetType` enums, so no extra configuration is needed when minification is enabled.
+
+## FAQ
+
+**Why don't I get a callback right after `register`?**
+Make sure `init` was called first. Also check the mode: on registration each method is called only if the current state matches its mode (for example, `Mode.NONE` is called on registration only when the device is offline).
+
+**Ethernet or VPN shows `NONE`.**
+On Android 6.0+ only Wi-Fi and cellular transports are mapped to `WIFI` and `MOBILE`; other transports are reported as `NONE`.
+
+**Do I need to unregister?**
+Yes. Subscribers are held by strong references until `unregister` is called, so unregister in the matching lifecycle callback to avoid leaking Activities or Fragments.
