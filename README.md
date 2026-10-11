@@ -154,12 +154,13 @@ fun onWifiChanged(netType: NetType) {
 
 ## Network types
 
-`NetType` has three values:
+`NetType` has four values:
 
 | NetType | Meaning |
 | --- | --- |
 | `NetType.WIFI` | Connected through Wi-Fi |
 | `NetType.MOBILE` | Connected through mobile data |
+| `NetType.ETHERNET` | Connected through Ethernet |
 | `NetType.NONE` | No usable network |
 
 ## Utilities
@@ -169,6 +170,7 @@ fun onWifiChanged(netType: NetType) {
 ```java
 NetType type = NetworkUtils.getNetType();            // current network type
 boolean online = NetworkUtils.isNetworkAvailable();  // whether any network is connected
+boolean vpn = NetworkUtils.isVpnActive();            // whether a VPN is connected (6.0+)
 NetworkUtils.openSetting(activity, 0);               // open the system Wi-Fi settings
 ```
 
@@ -190,8 +192,8 @@ NetworkUtils.openSetting(activity, 0);               // open the system Wi-Fi se
 **Why don't I get a callback right after `register`?**
 Make sure `init` was called first. Also check the mode: on registration each method is called only if the current state matches its mode (for example, `Mode.NONE` is called on registration only when the device is offline).
 
-**Ethernet or VPN shows `NONE`.**
-On Android 6.0+ only Wi-Fi and cellular transports are mapped to `WIFI` and `MOBILE`; other transports are reported as `NONE`.
+**Ethernet and VPN.**
+Ethernet is reported as `NetType.ETHERNET`. A VPN is not a separate type: the type of the network underneath it is reported (for example `WIFI` when the VPN runs over Wi-Fi). Use `NetworkUtils.isVpnActive()` to check whether a VPN is connected (Android 6.0+).
 
 **Do I need to unregister?**
 Yes. Subscribers are held by strong references until `unregister` is called, so unregister in the matching lifecycle callback to avoid leaking Activities or Fragments.

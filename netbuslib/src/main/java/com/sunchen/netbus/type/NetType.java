@@ -13,6 +13,8 @@ public enum NetType {
     WIFI,
     //移动网络
     MOBILE,
+    //有线网络（以太网）
+    ETHERNET,
     //没有任何网络
     NONE
 }

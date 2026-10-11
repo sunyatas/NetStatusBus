@@ -154,12 +154,13 @@ fun onWifiChanged(netType: NetType) {
 
 ## 网络类型
 
-`NetType` 有三个值：
+`NetType` 有四个值：
 
 | NetType | 含义 |
 | --- | --- |
 | `NetType.WIFI` | 通过 Wi-Fi 连接 |
 | `NetType.MOBILE` | 通过移动网络连接 |
+| `NetType.ETHERNET` | 通过有线网络（以太网）连接 |
 | `NetType.NONE` | 没有可用网络 |
 
 ## 工具方法
@@ -190,8 +191,8 @@ NetworkUtils.openSetting(activity, 0);               // 打开系统 Wi-Fi 设�
 **为什么 `register` 之后没有立即收到回调？**
 请确认已先调用 `init`。另外检查订阅模式：注册时只有当前状态符合模式的方法才会被回调（例如 `Mode.NONE` 只有在设备当前无网络时才会在注册时被回调）。
 
-**有线网络或 VPN 显示为 `NONE`。**
-在 Android 6.0 及以上，只有 Wi-Fi 和蜂窝网络会被识别为 `WIFI` 和 `MOBILE`，其他传输类型都报告为 `NONE`。
+**有线网络和 VPN。**
+有线网络报告为 `NetType.ETHERNET`。VPN 不是单独的类型，报告的是它底层网络的类型（例如通过 Wi-Fi 连接的 VPN 报告为 `WIFI`）。可以用 `NetworkUtils.isVpnActive()` 判断当前是否连着 VPN（Android 6.0+）。
 
 **需要注销吗？**
 需要。订阅者在调用 `unregister` 之前一直被强引用持有，请在对应的生命周期回调中注销，避免 Activity 或 Fragment 泄漏。
