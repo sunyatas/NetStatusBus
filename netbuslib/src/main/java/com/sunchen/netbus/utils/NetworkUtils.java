@@ -3,6 +3,9 @@ package com.sunchen.netbus.utils;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Process;
+import android.telephony.TelephonyManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -11,6 +14,7 @@ import android.os.Build;
 import android.provider.Settings;
 
 import com.sunchen.netbus.NetStatusBus;
+import com.sunchen.netbus.type.MobileGeneration;
 import com.sunchen.netbus.type.NetType;
 
 /**
@@ -155,6 +159,68 @@ public class NetworkUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * 当前移动网络制式（2G/3G/4G/5G），opt-in 功能。
+     * 只有当前网络是 MOBILE 且宿主 App 已获得 READ_PHONE_STATE 权限时才能判断，
+     * 否则返回 {@link MobileGeneration#UNKNOWN}，不会抛出异常。
+     * 注意：5G NSA（非独立组网）在系统层面通常报告为 LTE，因此会返回 G4。
+     */
+    public static MobileGeneration getMobileGeneration() {
+        if (getNetType() != NetType.MOBILE) {
+            return MobileGeneration.UNKNOWN;
+        }
+        Context context = NetStatusBus.getInstance().getApplication();
+        if (context.checkPermission(android.Manifest.permission.READ_PHONE_STATE,
+                Process.myPid(), Process.myUid()) != PackageManager.PERMISSION_GRANTED) {
+            return MobileGeneration.UNKNOWN;
+        }
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (tm == null) {
+            return MobileGeneration.UNKNOWN;
+        }
+        try {
+            int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                    ? tm.getDataNetworkType() : tm.getNetworkType();
+            return fromTelephonyType(type);
+        } catch (SecurityException e) {
+            return MobileGeneration.UNKNOWN;
+        }
+    }
+
+    /**
+     * TelephonyManager.NETWORK_TYPE_* 映射到制式（使用常量值以兼容低 compileSdk 语义）。
+     */
+    static MobileGeneration fromTelephonyType(int type) {
+        switch (type) {
+            case 1:  // GPRS
+            case 2:  // EDGE
+            case 4:  // CDMA
+            case 7:  // 1xRTT
+            case 11: // IDEN
+            case 16: // GSM
+                return MobileGeneration.G2;
+            case 3:  // UMTS
+            case 5:  // EVDO_0
+            case 6:  // EVDO_A
+            case 8:  // HSDPA
+            case 9:  // HSUPA
+            case 10: // HSPA
+            case 12: // EVDO_B
+            case 14: // EHRPD
+            case 15: // HSPAP
+            case 17: // TD_SCDMA
+                return MobileGeneration.G3;
+            case 13: // LTE
+            case 18: // IWLAN
+            case 19: // LTE_CA
+                return MobileGeneration.G4;
+            case 20: // NR
+                return MobileGeneration.G5;
+            default:
+                return MobileGeneration.UNKNOWN;
+        }
     }
 
     /**

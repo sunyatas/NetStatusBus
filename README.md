@@ -171,6 +171,7 @@ fun onWifiChanged(netType: NetType) {
 NetType type = NetworkUtils.getNetType();            // current network type
 boolean online = NetworkUtils.isNetworkAvailable();  // whether any network is connected
 boolean vpn = NetworkUtils.isVpnActive();            // whether a VPN is connected (6.0+)
+MobileGeneration g = NetworkUtils.getMobileGeneration(); // G2/G3/G4/G5/UNKNOWN, needs READ_PHONE_STATE
 NetworkUtils.openSetting(activity, 0);               // open the system Wi-Fi settings
 ```
 
@@ -194,6 +195,9 @@ Make sure `init` was called first. Also check the mode: on registration each met
 
 **Ethernet and VPN.**
 Ethernet is reported as `NetType.ETHERNET`. A VPN is not a separate type: the type of the network underneath it is reported (for example `WIFI` when the VPN runs over Wi-Fi). Use `NetworkUtils.isVpnActive()` to check whether a VPN is connected (Android 6.0+).
+
+**2G/3G/4G/5G.**
+`NetworkUtils.getMobileGeneration()` is opt-in: the library does not declare `READ_PHONE_STATE`. If your app declares and is granted it (runtime permission on 6.0+), the generation of the current mobile network is returned; otherwise, or when not on mobile data, it returns `UNKNOWN`. 5G NSA is usually reported by the system as LTE, so it returns `G4`.
 
 **Do I need to unregister?**
 Yes. Subscribers are held by strong references until `unregister` is called, so unregister in the matching lifecycle callback to avoid leaking Activities or Fragments.

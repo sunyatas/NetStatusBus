@@ -194,6 +194,9 @@ NetworkUtils.openSetting(activity, 0);               // 打开系统 Wi-Fi 设�
 **有线网络和 VPN。**
 有线网络报告为 `NetType.ETHERNET`。VPN 不是单独的类型，报告的是它底层网络的类型（例如通过 Wi-Fi 连接的 VPN 报告为 `WIFI`）。可以用 `NetworkUtils.isVpnActive()` 判断当前是否连着 VPN（Android 6.0+）。
 
+**2G/3G/4G/5G。**
+`NetworkUtils.getMobileGeneration()` 是可选功能：库本身不声明 `READ_PHONE_STATE`。宿主 App 声明并获得该权限（6.0+ 需运行时申请）后，可返回当前移动网络制式；没有权限或当前不是移动网络时返回 `UNKNOWN`。5G NSA 系统通常报告为 LTE，因此返回 `G4`。
+
 **需要注销吗？**
 需要。订阅者在调用 `unregister` 之前一直被强引用持有，请在对应的生命周期回调中注销，避免 Activity 或 Fragment 泄漏。
 
