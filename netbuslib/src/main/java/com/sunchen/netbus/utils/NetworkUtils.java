@@ -13,6 +13,8 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.provider.Settings;
 
+import androidx.annotation.RestrictTo;
+
 import com.sunchen.netbus.NetStatusBus;
 import com.sunchen.netbus.type.MobileGeneration;
 import com.sunchen.netbus.type.NetType;
@@ -73,18 +75,7 @@ public class NetworkUtils {
             if (active == null || active.equals(lostNetwork)) {
                 return NetType.NONE;
             }
-            NetworkCapabilities caps = connectivityManager.getNetworkCapabilities(active);
-            if (caps == null || !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
-                return NetType.NONE;
-            }
-            NetType type = fromTransports(caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
-                    caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR),
-                    caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
-            if (type == NetType.NONE && caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                // VPN 没有声明底层传输时，按底层的非 VPN 网络判断
-                type = underlyingType(connectivityManager, lostNetwork);
-            }
-            return type;
+            return typeOf(connectivityManager, connectivityManager.getNetworkCapabilities(active), lostNetwork);
         }
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
         if (info == null || !info.isConnected()) {
@@ -101,6 +92,36 @@ public class NetworkUtils {
         return NetType.NONE;
     }
 
+
+    /**
+     * 根据某个网络的 NetworkCapabilities 计算网络类型（Android 6.0+）。
+     * 仅供库内部使用。
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    public static NetType typeOf(NetworkCapabilities caps) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return NetType.NONE;
+        }
+        ConnectivityManager cm = (ConnectivityManager) NetStatusBus.getInstance()
+                .getApplication()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        return typeOf(cm, caps, null);
+    }
+
+    @android.annotation.TargetApi(Build.VERSION_CODES.M)
+    private static NetType typeOf(ConnectivityManager cm, NetworkCapabilities caps, Network lostNetwork) {
+        if (caps == null || !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+            return NetType.NONE;
+        }
+        NetType type = fromTransports(caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR),
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
+        if (type == NetType.NONE && cm != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+            // VPN 没有声明底层传输时，按底层的非 VPN 网络判断
+            type = underlyingType(cm, lostNetwork);
+        }
+        return type;
+    }
 
     /**
      * 根据传输类型映射 NetType，优先级 WIFI > MOBILE > ETHERNET。

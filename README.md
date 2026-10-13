@@ -179,8 +179,8 @@ NetworkUtils.openSetting(activity, 0);               // open the system Wi-Fi se
 
 ## How it works
 
-1. `init` registers a `ConnectivityManager.NetworkCallback` and records the current network type.
-2. On `onAvailable`, `onLost` and `onCapabilitiesChanged`, the library recalculates the type of the active network (ignoring a network that was just lost) and only dispatches when the type actually changes.
+1. `init` records the current network type and registers a callback: on Android 7.0+ a default-network callback (`registerDefaultNetworkCallback`), on Android 5.0–6.0 a `ConnectivityManager.NetworkCallback` for all networks.
+2. On Android 7.0+, the type is computed from the `NetworkCapabilities` delivered with the callback for the system's default network, so switching between Wi-Fi and mobile data is reported immediately; late `onLost` events for a network that is no longer the default are ignored. On older versions, the library recalculates the type of the active network (ignoring a network that was just lost). In both cases it only dispatches when the type actually changes.
 3. `register` scans the object for `@NetSubscribe` methods with reflection and stores them in a thread-safe map. Each subscriber is then invoked on the main thread according to its mode and the previous/current network types.
 
 ## Permissions and R8/ProGuard

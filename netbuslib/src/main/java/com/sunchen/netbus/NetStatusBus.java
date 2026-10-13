@@ -56,9 +56,16 @@ public class NetStatusBus {
             ConnectivityManager manager = (ConnectivityManager) application
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             if (manager != null) {
-                ConnectivityManager.NetworkCallback callback = new NetworkCallbackImpl(receiver);
-                NetworkRequest request = new NetworkRequest.Builder().build();
-                manager.registerNetworkCallback(request, callback);
+                ConnectivityManager.NetworkCallback callback;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // 只跟踪系统默认网络，网络切换时立即回调（#4 #11）
+                    callback = new DefaultNetworkCallbackImpl(receiver, manager);
+                    manager.registerDefaultNetworkCallback(callback);
+                } else {
+                    callback = new NetworkCallbackImpl(receiver);
+                    NetworkRequest request = new NetworkRequest.Builder().build();
+                    manager.registerNetworkCallback(request, callback);
+                }
                 networkCallback = callback;
             }
         }

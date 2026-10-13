@@ -177,8 +177,8 @@ NetworkUtils.openSetting(activity, 0);               // 打开系统 Wi-Fi 设�
 
 ## 实现原理
 
-1. `init` 注册一个 `ConnectivityManager.NetworkCallback`，并记录当前网络类型。
-2. 在 `onAvailable`、`onLost` 和 `onCapabilitiesChanged` 中，重新计算当前活动网络的类型（忽略刚刚断开的网络），只有类型真正变化时才分发。
+1. `init` 记录当前网络类型并注册回调：Android 7.0+ 使用默认网络回调（`registerDefaultNetworkCallback`），Android 5.0–6.0 使用监听所有网络的 `ConnectivityManager.NetworkCallback`。
+2. Android 7.0+ 直接根据回调带来的系统默认网络的 `NetworkCapabilities` 计算类型，WIFI 与移动网络之间切换会立即回调；已不是默认网络的迟到 `onLost` 会被忽略。旧系统上则重新计算当前活动网络的类型（忽略刚刚断开的网络）。两种情况下都只有类型真正变化时才分发。
 3. `register` 通过反射查找对象中带 `@NetSubscribe` 的方法，保存在线程安全的 Map 中；之后根据每个方法的模式以及变化前后的网络类型，在主线程回调对应的订阅者。
 
 ## 权限与 R8/ProGuard
