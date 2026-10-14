@@ -34,7 +34,7 @@ public class NetworkUtils {
      * Android 6.0+ 使用当前活跃网络的 {@link NetworkCapabilities}：
      * 要求 {@link NetworkCapabilities#NET_CAPABILITY_INTERNET}，
      * 但不要求 {@link NetworkCapabilities#NET_CAPABILITY_VALIDATED}，
-     * 以便仅能访问局域网 /被俗门的 Wi-Fi 仍被视为已连接。
+     * 以便仅能访问局域网 / 强制门户的 Wi-Fi 仍被视为已连接。
      */
     public static boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getInstance()
