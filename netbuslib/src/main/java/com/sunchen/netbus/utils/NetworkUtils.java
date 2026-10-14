@@ -30,7 +30,11 @@ import com.sunchen.netbus.type.NetType;
 public class NetworkUtils {
 
     /**
-     * 网络是否可用
+     * 网络是否可用。
+     * Android 6.0+ 使用当前活跃网络的 {@link NetworkCapabilities}：
+     * 要求 {@link NetworkCapabilities#NET_CAPABILITY_INTERNET}，
+     * 但不要求 {@link NetworkCapabilities#NET_CAPABILITY_VALIDATED}，
+     * 以便仅能访问局域网 /被俗门的 Wi-Fi 仍被视为已连接。
      */
     public static boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getInstance()
@@ -40,6 +44,15 @@ public class NetworkUtils {
             return false;
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Network active = connectivityManager.getActiveNetwork();
+            if (active == null) {
+                return false;
+            }
+            return isAvailable(connectivityManager.getNetworkCapabilities(active));
+        }
+
+        @SuppressWarnings("deprecation")
         NetworkInfo[] info = connectivityManager.getAllNetworkInfo();
         if (info != null) {
             for (NetworkInfo networkInfo : info) {
@@ -50,6 +63,29 @@ public class NetworkUtils {
         }
 
         return false;
+    }
+
+    /**
+     * Android 6.0+ availability from capabilities.
+     * Requires INTERNET; does NOT require VALIDATED (captive / LAN-only still count).
+     */
+    @android.annotation.TargetApi(Build.VERSION_CODES.M)
+    static boolean isAvailable(NetworkCapabilities caps) {
+        if (caps == null) {
+            return false;
+        }
+        return isAvailableFromFlags(
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED));
+    }
+
+    /**
+     * Decide availability from capability flags.
+     * INTERNET is required; VALIDATED is intentionally ignored so captive portal
+     * and LAN-only Wi-Fi still count as connected.
+     */
+    static boolean isAvailableFromFlags(boolean hasInternet, boolean hasValidated) {
+        return hasInternet;
     }
 
     /**
