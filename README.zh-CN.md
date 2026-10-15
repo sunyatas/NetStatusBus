@@ -1,5 +1,7 @@
 # NetStatusBus
 
+[![CI](https://github.com/sunyatas/NetStatusBus/actions/workflows/ci.yml/badge.svg)](https://github.com/sunyatas/NetStatusBus/actions/workflows/ci.yml)
+
 [English](README.md) | 简体中文
 
 NetStatusBus 是一个轻量的 Android 网络状态监听库。用 `@NetSubscribe` 注解一个方法并注册所在对象，网络发生变化时该方法就会在主线程被回调。

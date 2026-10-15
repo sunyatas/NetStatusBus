@@ -1,5 +1,7 @@
 # NetStatusBus
 
+[![CI](https://github.com/sunyatas/NetStatusBus/actions/workflows/ci.yml/badge.svg)](https://github.com/sunyatas/NetStatusBus/actions/workflows/ci.yml)
+
 English | [简体中文](README.zh-CN.md)
 
 NetStatusBus is a lightweight Android library for observing network status changes. Annotate a method with `@NetSubscribe`, register the object, and the method is called on the main thread whenever the network changes.
