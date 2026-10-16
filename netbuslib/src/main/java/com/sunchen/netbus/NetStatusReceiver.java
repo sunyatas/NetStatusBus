@@ -6,14 +6,17 @@ import android.os.Looper;
 import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.NetType;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   18:31.
@@ -22,7 +25,9 @@ import java.util.concurrent.ConcurrentMap;
  * <p>
  * NetStatusReceiver
  * <p>
- * 订阅者保存在线程安全的 Map 中，所有订阅方法统一在主线程回调。
+ * 订阅者以弱引用保存，避免 Activity/Fragment 忘记 unregister 时泄漏；
+ * 注解方法按 Class 缓存，并向上查找父类中的 {@link NetSubscribe} 方法。
+ * 所有订阅方法统一在主线程回调。
  */
 
 public class NetStatusReceiver {
@@ -34,9 +39,38 @@ public class NetStatusReceiver {
         void dispatch(Runnable runnable);
     }
 
+    /**
+     * 单个订阅者及其已解析的注解方法；订阅者本身以弱引用持有。
+     */
+    static final class ObserverHolder {
+        final WeakReference<Object> subscriberRef;
+        final int identityHash;
+        final List<MethodManager> methods;
+
+        ObserverHolder(Object subscriber, List<MethodManager> methods) {
+            this.subscriberRef = new WeakReference<>(subscriber);
+            this.identityHash = System.identityHashCode(subscriber);
+            this.methods = methods;
+        }
+
+        Object getSubscriber() {
+            return subscriberRef.get();
+        }
+
+        boolean isFor(Object subscriber) {
+            return subscriber != null
+                    && identityHash == System.identityHashCode(subscriber)
+                    && subscriber == subscriberRef.get();
+        }
+    }
+
+    /** 按订阅者 Class 缓存已解析的注解方法（含父类），进程内只解析一次 */
+    private static final ConcurrentMap<Class<?>, List<MethodManager>> METHOD_CACHE =
+            new ConcurrentHashMap<>();
+
     private volatile NetType mNetType;//网络类型
 
-    private final ConcurrentMap<Object, List<MethodManager>> networkList = new ConcurrentHashMap<>();
+    private final CopyOnWriteArrayList<ObserverHolder> networkList = new CopyOnWriteArrayList<>();
 
     private final Dispatcher dispatcher;
 
@@ -61,8 +95,13 @@ public class NetStatusReceiver {
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
-                for (Map.Entry<Object, List<MethodManager>> entry : networkList.entrySet()) {
-                    executeInvoke(entry.getKey(), entry.getValue(), netType, previous);
+                for (ObserverHolder holder : networkList) {
+                    Object subscriber = holder.getSubscriber();
+                    if (subscriber == null) {
+                        networkList.remove(holder);
+                        continue;
+                    }
+                    executeInvoke(subscriber, holder, netType, previous);
                 }
             }
         });
@@ -87,22 +126,22 @@ public class NetStatusReceiver {
         this.mNetType = netType;
     }
 
-    private void executeInvoke(Object subscriber, List<MethodManager> methodManagerList, NetType netType) {
-        executeInvoke(subscriber, methodManagerList, netType, netType);
+    private void executeInvoke(Object subscriber, ObserverHolder holder, NetType netType) {
+        executeInvoke(subscriber, holder, netType, netType);
     }
 
     /**
      * @param previous 变化前的网络类型。WIFI/MOBILE 模式下，只有对应网络本身连上或断开时才回调（#7）
      */
-    private void executeInvoke(Object subscriber, List<MethodManager> methodManagerList, NetType netType, NetType previous) {
-        if (methodManagerList == null) {
+    private void executeInvoke(Object subscriber, ObserverHolder holder, NetType netType, NetType previous) {
+        if (holder == null || holder.methods == null) {
             return;
         }
-        // 分发过程中订阅者可能已被注销
-        if (!networkList.containsKey(subscriber)) {
+        // 分发过程中订阅者可能已被注销或已被回收
+        if (!networkList.contains(holder) || holder.getSubscriber() != subscriber) {
             return;
         }
-        for (MethodManager subscribeMethod : methodManagerList) {
+        for (MethodManager subscribeMethod : holder.methods) {
             switch (subscribeMethod.getMode()) {
                 case AUTO:
                     invoke(subscribeMethod, subscriber, netType);
@@ -156,62 +195,118 @@ public class NetStatusReceiver {
     }
 
     protected void registerObserver(final Object mContext) {
-        List<MethodManager> methodList = networkList.get(mContext);
-        if (methodList == null) {
-            // 开始添加
-            methodList = Collections.unmodifiableList(findAnnotationMethod(mContext));
-            List<MethodManager> previous = networkList.putIfAbsent(mContext, methodList);
-            if (previous != null) {
-                methodList = previous;
-            }
+        if (mContext == null) {
+            return;
+        }
+        ObserverHolder existing = findHolder(mContext);
+        final ObserverHolder holder;
+        if (existing != null) {
+            holder = existing;
+        } else {
+            List<MethodManager> methodList = findAnnotationMethods(mContext.getClass());
+            holder = new ObserverHolder(mContext, methodList);
+            networkList.add(holder);
         }
         // 注册后立即回调一次当前网络状态
-        final List<MethodManager> finalList = methodList;
         final NetType current = mNetType;
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
-                executeInvoke(mContext, finalList, current);
+                executeInvoke(mContext, holder, current);
             }
         });
     }
 
-    private List<MethodManager> findAnnotationMethod(Object mContext) {
+    private ObserverHolder findHolder(Object subscriber) {
+        for (ObserverHolder holder : networkList) {
+            if (holder.isFor(subscriber)) {
+                return holder;
+            }
+            if (holder.getSubscriber() == null) {
+                networkList.remove(holder);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 解析 clazz 及其父类上的 {@link NetSubscribe} 方法，结果按 Class 缓存。
+     * 子类若覆盖同签名方法，只保留子类声明的那一份，避免重复回调。
+     */
+    static List<MethodManager> findAnnotationMethods(Class<?> clazz) {
+        List<MethodManager> cached = METHOD_CACHE.get(clazz);
+        if (cached != null) {
+            return cached;
+        }
         List<MethodManager> methodManagerList = new ArrayList<>();
-        // 获取到activity fragment
-        Class<?> clazz = mContext.getClass();
-        Method[] methods = clazz.getDeclaredMethods();
-        for (Method method : methods) {
-            NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
-            if (netSubscribe == null) {
-                continue;
-            }
-            //注解方法校验返回值
-            Type genericReturnType = method.getGenericReturnType();
-            if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
-                throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
-            }
+        Set<String> seenSignatures = new HashSet<>();
+        Class<?> type = clazz;
+        while (type != null && type != Object.class) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (method.isBridge() || method.isSynthetic()) {
+                    continue;
+                }
+                NetSubscribe netSubscribe = method.getAnnotation(NetSubscribe.class);
+                if (netSubscribe == null) {
+                    continue;
+                }
+                String signature = methodSignature(method);
+                if (!seenSignatures.add(signature)) {
+                    // 子类已声明同签名方法，跳过父类
+                    continue;
+                }
+                //注解方法校验返回值
+                Type genericReturnType = method.getGenericReturnType();
+                if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
+                    throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
+                }
 
-            //判断参数
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            MethodManager methodManager;
-            if (parameterTypes.length == 0) {
-                methodManager = new MethodManager(null, netSubscribe.mode(), method);
-            } else if (parameterTypes.length == 1) {
-                methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
-            } else {
-                throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
-            }
+                //判断参数
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                MethodManager methodManager;
+                if (parameterTypes.length == 0) {
+                    methodManager = new MethodManager(null, netSubscribe.mode(), method);
+                } else if (parameterTypes.length == 1) {
+                    methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
+                } else {
+                    throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
+                }
 
-            methodManagerList.add(methodManager);
+                if (!method.isAccessible()) {
+                    method.setAccessible(true);
+                }
+                methodManagerList.add(methodManager);
+            }
+            type = type.getSuperclass();
         }
 
-        return methodManagerList;
+        List<MethodManager> immutable = Collections.unmodifiableList(methodManagerList);
+        List<MethodManager> raced = METHOD_CACHE.putIfAbsent(clazz, immutable);
+        return raced != null ? raced : immutable;
+    }
+
+    private static String methodSignature(Method method) {
+        StringBuilder sb = new StringBuilder(method.getName());
+        sb.append('(');
+        Class<?>[] params = method.getParameterTypes();
+        for (int i = 0; i < params.length; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append(params[i].getName());
+        }
+        sb.append(')');
+        return sb.toString();
     }
 
     public void unRegisterObserver(Object mContext) {
-        if (mContext != null) {
-            networkList.remove(mContext);
+        if (mContext == null) {
+            return;
+        }
+        for (ObserverHolder holder : networkList) {
+            if (holder.isFor(mContext) || holder.getSubscriber() == null) {
+                networkList.remove(holder);
+            }
         }
     }
 
@@ -224,6 +319,31 @@ public class NetStatusReceiver {
      */
     NetType getNetType() {
         return mNetType;
+    }
+
+    /** 仍存活的订阅者数量（测试与诊断用） */
+    int aliveObserverCount() {
+        int count = 0;
+        for (ObserverHolder holder : networkList) {
+            if (holder.getSubscriber() != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /** 清理已被 GC 的弱引用条目（测试与诊断用） */
+    void purgeDeadObservers() {
+        for (ObserverHolder holder : networkList) {
+            if (holder.getSubscriber() == null) {
+                networkList.remove(holder);
+            }
+        }
+    }
+
+    /** 清空注解方法缓存（仅测试用） */
+    static void clearMethodCacheForTest() {
+        METHOD_CACHE.clear();
     }
 
     /**

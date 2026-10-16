@@ -15,6 +15,7 @@ NetStatusBus 是一个轻量的 Android 网络状态监听库。用 `@NetSubscri
 - 基于 `ConnectivityManager.NetworkCallback` 实现（不使用已废弃的 `CONNECTIVITY_ACTION` 广播）
 - Android 6.0 及以上使用 `NetworkCapabilities` 判断网络类型
 - `register` / `unregister` 线程安全；`init` 可重复调用
+- 订阅者以弱引用保存（忘记 `unregister` 不会泄漏 Activity/Fragment）；会查找并按 Class 缓存父类上的 `@NetSubscribe` 方法
 - 库中自带 `ACCESS_NETWORK_STATE` 权限声明和 R8/ProGuard 混淆规则
 
 ## 环境要求

@@ -15,6 +15,7 @@ NetStatusBus is a lightweight Android library for observing network status chang
 - Built on `ConnectivityManager.NetworkCallback` (no deprecated `CONNECTIVITY_ACTION` broadcast)
 - Network type is detected with `NetworkCapabilities` on Android 6.0+
 - Thread-safe `register` / `unregister`; `init` can be called more than once
+- Subscribers are held with weak references (forgotten `unregister` will not leak the Activity/Fragment); `@NetSubscribe` methods on superclasses are discovered and cached per class
 - `ACCESS_NETWORK_STATE` permission and R8/ProGuard rules are bundled with the library
 
 ## Requirements
