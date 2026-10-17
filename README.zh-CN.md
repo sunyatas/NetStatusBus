@@ -15,6 +15,7 @@ NetStatusBus 是一个轻量的 Android 网络状态监听库。用 `@NetSubscri
 - 基于 `ConnectivityManager.NetworkCallback` 实现（不使用已废弃的 `CONNECTIVITY_ACTION` 广播）
 - Android 6.0 及以上使用 `NetworkCapabilities` 判断网络类型
 - `register` / `unregister` 线程安全；`init` 可重复调用
+- `register(subscriber, lifecycleOwner)` 在生命周期销毁时自动注销
 - 订阅者以弱引用保存（忘记 `unregister` 不会泄漏 Activity/Fragment）；会查找并按 Class 缓存父类上的 `@NetSubscribe` 方法
 - 库中自带 `ACCESS_NETWORK_STATE` 权限声明和 R8/ProGuard 混淆规则
 
@@ -105,6 +106,20 @@ protected void onStop() {
 
 调用 `NetStatusBus.getInstance().unregisterAllObserver()` 可以一次性移除所有订阅者。
 
+#### 绑定生命周期自动注销
+
+传入一个 `LifecycleOwner`，当它的生命周期进入 `DESTROYED` 时会自动注销订阅者，不必再写对应的 `unregister`。需要在主线程调用。
+
+```java
+// Activity：在 onDestroy 时自动注销
+NetStatusBus.getInstance().register(this, this);
+
+// Fragment：在 onViewCreated 中注册，onDestroyView 时自动注销
+NetStatusBus.getInstance().register(this, getViewLifecycleOwner());
+```
+
+订阅者和 owner 可以是不同的对象（例如绑定到 Fragment 视图生命周期的 presenter）。如果 owner 已经销毁，则不会注册。提前手动调用 `unregister` 也没有问题。
+
 ### 3. 声明订阅方法
 
 ```java
@@ -127,7 +142,7 @@ public void onNetLost() {
 
 - 是 `public` 方法，返回值为 `void`
 - 没有参数，或只有一个 `NetType` 类型的参数
-- 声明在被注册对象自身的类中（父类中继承来的方法不会被找到）
+- 声明在被注册对象的类或其任意父类中（子类覆盖了带注解的方法时，只回调子类的版本）
 
 Kotlin：
 
@@ -201,7 +216,7 @@ NetworkUtils.openSetting(activity, 0);               // 打开系统 Wi-Fi 设�
 `NetworkUtils.getMobileGeneration()` 是可选功能：库本身不声明 `READ_PHONE_STATE`。宿主 App 声明并获得该权限（6.0+ 需运行时申请）后，可返回当前移动网络制式；没有权限或当前不是移动网络时返回 `UNKNOWN`。5G NSA 系统通常报告为 LTE，因此返回 `G4`。
 
 **需要注销吗？**
-需要。订阅者在调用 `unregister` 之前一直被强引用持有，请在对应的生命周期回调中注销，避免 Activity 或 Fragment 泄漏。
+建议注销。订阅者以弱引用保存，忘记 `unregister` 不会泄漏 Activity 或 Fragment，但已销毁的对象在被垃圾回收之前仍可能收到回调。可以在对应的生命周期回调中调用 `unregister`，或者使用 `register(subscriber, lifecycleOwner)` 让库自动注销。
 
 ## 许可证
 

@@ -1,6 +1,8 @@
 package com.sunchen.sample;
 
 import android.os.Bundle;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,8 +36,14 @@ public class BlankFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_blank, container, false);
         tvTips = view.findViewById(R.id.tv_tips_2);
         imgNetStatus = view.findViewById(R.id.img_net_status);
-        NetStatusBus.getInstance().register(this);
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // 绑定视图生命周期：onDestroyView 时自动注销，无需手动 unregister
+        NetStatusBus.getInstance().register(this, getViewLifecycleOwner());
     }
 
     @NetSubscribe()
@@ -59,11 +67,5 @@ public class BlankFragment extends Fragment {
 
             default:
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        NetStatusBus.getInstance().unregister(this);
     }
 }

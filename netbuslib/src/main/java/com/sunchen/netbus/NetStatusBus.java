@@ -7,6 +7,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkRequest;
 import android.os.Build;
 
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
+
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   19:07.
  * <p>
@@ -76,6 +80,35 @@ public class NetStatusBus {
             throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
         }
         receiver.registerObserver(mContext);
+    }
+
+    /**
+     * 注册订阅者，并在 {@code owner} 的生命周期进入 DESTROYED（例如 Activity/Fragment 的 onDestroy）时自动注销，
+     * 不必再手动调用 {@link #unregister(Object)}。
+     * <p>
+     * 订阅者和 owner 可以是同一个对象（如 {@code register(this, this)}），也可以不同（如 Fragment 里的某个 presenter，
+     * 传 {@code getViewLifecycleOwner()}）。如果 owner 已经 DESTROYED，则不会注册。提前手动 {@code unregister} 也没问题。
+     * <p>
+     * 必须在主线程调用（Lifecycle 的要求）。
+     */
+    @MainThread
+    public void register(@NonNull Object subscriber, @NonNull LifecycleOwner owner) {
+        if (application == null) {
+            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
+        }
+        if (subscriber == null || owner == null) {
+            throw new IllegalArgumentException("subscriber and owner must not be null");
+        }
+        boolean bound = LifecycleBinding.bind(subscriber, owner.getLifecycle(),
+                new LifecycleBinding.Unregistrar() {
+                    @Override
+                    public void unregister(Object s) {
+                        NetStatusBus.this.unregister(s);
+                    }
+                });
+        if (bound) {
+            receiver.registerObserver(subscriber);
+        }
     }
 
     public void unregister(Object mContext) {

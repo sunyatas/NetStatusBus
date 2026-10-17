@@ -15,6 +15,7 @@ NetStatusBus is a lightweight Android library for observing network status chang
 - Built on `ConnectivityManager.NetworkCallback` (no deprecated `CONNECTIVITY_ACTION` broadcast)
 - Network type is detected with `NetworkCapabilities` on Android 6.0+
 - Thread-safe `register` / `unregister`; `init` can be called more than once
+- `register(subscriber, lifecycleOwner)` unregisters automatically when the lifecycle is destroyed
 - Subscribers are held with weak references (forgotten `unregister` will not leak the Activity/Fragment); `@NetSubscribe` methods on superclasses are discovered and cached per class
 - `ACCESS_NETWORK_STATE` permission and R8/ProGuard rules are bundled with the library
 
@@ -105,6 +106,20 @@ protected void onStop() {
 
 `NetStatusBus.getInstance().unregisterAllObserver()` removes every subscriber at once.
 
+#### Automatic unregister with a lifecycle
+
+Pass a `LifecycleOwner` and the subscriber is unregistered automatically when that lifecycle reaches `DESTROYED`, so you don't need a matching `unregister` call. Call it on the main thread.
+
+```java
+// Activity: unregistered in onDestroy
+NetStatusBus.getInstance().register(this, this);
+
+// Fragment: register in onViewCreated, unregistered in onDestroyView
+NetStatusBus.getInstance().register(this, getViewLifecycleOwner());
+```
+
+The subscriber and the owner can be different objects (for example a presenter bound to a Fragment's view lifecycle). If the owner is already destroyed, nothing is registered. Calling `unregister` earlier yourself is still fine.
+
 ### 3. Declare subscriber methods
 
 ```java
@@ -127,7 +142,7 @@ A subscriber method must:
 
 - be `public` and return `void`
 - take either no parameters or a single `NetType` parameter
-- be declared in the registered object's own class (methods inherited from a superclass are not found)
+- be declared in the registered object's class or any of its superclasses (if a subclass overrides an annotated method, only the subclass version is called)
 
 Kotlin:
 
@@ -203,7 +218,7 @@ Ethernet is reported as `NetType.ETHERNET`. A VPN is not a separate type: the ty
 `NetworkUtils.getMobileGeneration()` is opt-in: the library does not declare `READ_PHONE_STATE`. If your app declares and is granted it (runtime permission on 6.0+), the generation of the current mobile network is returned; otherwise, or when not on mobile data, it returns `UNKNOWN`. 5G NSA is usually reported by the system as LTE, so it returns `G4`.
 
 **Do I need to unregister?**
-Yes. Subscribers are held by strong references until `unregister` is called, so unregister in the matching lifecycle callback to avoid leaking Activities or Fragments.
+It's recommended. Subscribers are held by weak references, so a forgotten `unregister` won't leak an Activity or Fragment, but a destroyed object may keep receiving callbacks until it is garbage collected. Either call `unregister` in the matching lifecycle callback, or use `register(subscriber, lifecycleOwner)` to have it done automatically.
 
 ## License
 
