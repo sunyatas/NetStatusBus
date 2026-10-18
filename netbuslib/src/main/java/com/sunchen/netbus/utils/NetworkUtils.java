@@ -1,7 +1,10 @@
 package com.sunchen.netbus.utils;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Process;
@@ -281,11 +284,81 @@ public class NetworkUtils {
     }
 
     /**
-     * 打开网络设置界面
+     * 打开系统 Wi-Fi 设置界面，不关心返回结果。
+     * 可以传入任意 {@link Context}；非 Activity 时会自动加上 {@link Intent#FLAG_ACTIVITY_NEW_TASK}。
+     */
+    public static void openSetting(Context context) {
+        openSetting(context, -1);
+    }
+
+    /**
+     * 打开系统 Wi-Fi 设置界面。
+     * <p>
+     * 当 {@code context} 是（或包装了）{@link Activity} 且 {@code requestCode >= 0} 时，
+     * 使用 {@link Activity#startActivityForResult(Intent, int)}，返回时会回调宿主的
+     * {@code onActivityResult}（系统设置页的 resultCode 通常是 {@code RESULT_CANCELED}，
+     * 返回后建议重新调用 {@link #getNetType()} 读取最新状态）。
+     * 否则使用 {@link Context#startActivity(Intent)}，非 Activity 时自动加上
+     * {@link Intent#FLAG_ACTIVITY_NEW_TASK}，传入 Application 也不会崩溃。
+     * 如果设备上没有 Wi-Fi 设置页，退回到系统设置首页。
+     *
+     * @param requestCode 传负数表示不需要返回结果
      */
     public static void openSetting(Context context, int requestCode) {
+        if (context == null) {
+            return;
+        }
+        Activity activity = findActivity(context);
+        try {
+            launch(context, activity, new Intent(Settings.ACTION_WIFI_SETTINGS), requestCode);
+        } catch (ActivityNotFoundException e) {
+            try {
+                launch(context, activity, new Intent(Settings.ACTION_SETTINGS), requestCode);
+            } catch (ActivityNotFoundException ignored) {
+                // 设备上没有任何设置页，放弃
+            }
+        }
+    }
 
-        context.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+    private static void launch(Context context, Activity activity, Intent intent, int requestCode) {
+        if (shouldStartForResult(activity != null, requestCode)) {
+            activity.startActivityForResult(intent, requestCode);
+        } else if (activity != null) {
+            activity.startActivity(intent);
+        } else {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
+    }
+
+    /**
+     * 是否应该用 startActivityForResult 打开设置页：需要有 Activity 且 requestCode 非负
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    static boolean shouldStartForResult(boolean hasActivity, int requestCode) {
+        return hasActivity && requestCode >= 0;
+    }
+
+    /**
+     * 沿着 {@link ContextWrapper} 链查找 Activity（例如 ContextThemeWrapper 包装的 Activity）
+     */
+    private static Activity findActivity(Context context) {
+        Context current = context;
+        // 防御性上限，避免异常的包装链导致死循环
+        for (int i = 0; i < 20 && current != null; i++) {
+            if (current instanceof Activity) {
+                return (Activity) current;
+            }
+            if (!(current instanceof ContextWrapper)) {
+                return null;
+            }
+            Context base = ((ContextWrapper) current).getBaseContext();
+            if (base == current) {
+                return null;
+            }
+            current = base;
+        }
+        return null;
     }
 
 }

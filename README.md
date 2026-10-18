@@ -190,10 +190,11 @@ NetType type = NetworkUtils.getNetType();            // current network type
 boolean online = NetworkUtils.isNetworkAvailable();  // whether any network is connected
 boolean vpn = NetworkUtils.isVpnActive();            // whether a VPN is connected (6.0+)
 MobileGeneration g = NetworkUtils.getMobileGeneration(); // G2/G3/G4/G5/UNKNOWN, needs READ_PHONE_STATE
-NetworkUtils.openSetting(activity, 0);               // open the system Wi-Fi settings
+NetworkUtils.openSetting(context);                   // open the system Wi-Fi settings
+NetworkUtils.openSetting(activity, REQUEST_WIFI);    // same, but get onActivityResult on return
 ```
 
-`openSetting` starts the settings screen with `context.startActivity`, so pass an `Activity`. The `requestCode` argument is currently not used.
+`openSetting(context)` accepts any `Context`; with a non-Activity context (for example the `Application`) it adds `FLAG_ACTIVITY_NEW_TASK` for you. `openSetting(context, requestCode)` uses `startActivityForResult` when the context is (or wraps) an `Activity` and `requestCode >= 0`, so your `onActivityResult` runs when the user comes back. The settings screen normally returns `RESULT_CANCELED`, so call `NetworkUtils.getNetType()` there to read the new state. A negative `requestCode` means no result is needed. If the device has no Wi-Fi settings screen, the main settings screen opens instead.
 
 ## How it works
 

@@ -42,4 +42,15 @@ public class NetworkUtilsTest {
         assertFalse(NetworkUtils.isAvailableFromFlags(false, false));
         assertFalse(NetworkUtils.isAvailableFromFlags(false, true));
     }
+
+    @Test
+    public void openSettingUsesForResultOnlyForActivityWithNonNegativeCode() {
+        assertTrue(NetworkUtils.shouldStartForResult(true, 0));
+        assertTrue(NetworkUtils.shouldStartForResult(true, 42));
+        // 负数 requestCode 表示不需要结果
+        assertFalse(NetworkUtils.shouldStartForResult(true, -1));
+        // 没有 Activity（例如 Application）时不能 startActivityForResult
+        assertFalse(NetworkUtils.shouldStartForResult(false, 0));
+        assertFalse(NetworkUtils.shouldStartForResult(false, -1));
+    }
 }

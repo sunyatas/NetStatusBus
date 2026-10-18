@@ -188,10 +188,13 @@ fun onWifiChanged(netType: NetType) {
 ```java
 NetType type = NetworkUtils.getNetType();            // 当前网络类型
 boolean online = NetworkUtils.isNetworkAvailable();  // 是否有已连接的网络
-NetworkUtils.openSetting(activity, 0);               // 打开系统 Wi-Fi 设置
+boolean vpn = NetworkUtils.isVpnActive();            // 是否连着 VPN（6.0+）
+MobileGeneration g = NetworkUtils.getMobileGeneration(); // G2/G3/G4/G5/UNKNOWN，需要 READ_PHONE_STATE
+NetworkUtils.openSetting(context);                   // 打开系统 Wi-Fi 设置
+NetworkUtils.openSetting(activity, REQUEST_WIFI);    // 同上，返回时回调 onActivityResult
 ```
 
-`openSetting` 通过 `context.startActivity` 打开设置页面，请传入 `Activity`。`requestCode` 参数目前未使用。
+`openSetting(context)` 可以传入任意 `Context`；传入非 Activity（例如 `Application`）时会自动加上 `FLAG_ACTIVITY_NEW_TASK`。`openSetting(context, requestCode)` 在 `context` 是（或包装了）`Activity` 且 `requestCode >= 0` 时使用 `startActivityForResult`，用户返回时会回调你的 `onActivityResult`。系统设置页通常返回 `RESULT_CANCELED`，所以请在回调里调用 `NetworkUtils.getNetType()` 读取最新状态。`requestCode` 传负数表示不需要返回结果。如果设备上没有 Wi-Fi 设置页，会退回到系统设置首页。
 
 ## 实现原理
 
