@@ -40,6 +40,13 @@ public class NetStatusReceiver {
     }
 
     /**
+     * 网络类型变化的监听（库内部使用，例如驱动 LiveData），在 dispatcher 线程（默认主线程）回调
+     */
+    interface NetTypeListener {
+        void onNetTypeChanged(NetType netType);
+    }
+
+    /**
      * 单个订阅者及其已解析的注解方法；订阅者本身以弱引用持有。
      */
     static final class ObserverHolder {
@@ -74,6 +81,8 @@ public class NetStatusReceiver {
 
     private final Dispatcher dispatcher;
 
+    private volatile NetTypeListener netTypeListener;
+
     protected NetStatusReceiver() {
         this(new MainThreadDispatcher());
     }
@@ -95,6 +104,10 @@ public class NetStatusReceiver {
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
+                NetTypeListener listener = netTypeListener;
+                if (listener != null) {
+                    listener.onNetTypeChanged(netType);
+                }
                 for (ObserverHolder holder : networkList) {
                     Object subscriber = holder.getSubscriber();
                     if (subscriber == null) {
@@ -117,6 +130,25 @@ public class NetStatusReceiver {
             }
         }
         post(netType);
+    }
+
+    /**
+     * 设置网络类型监听，并立即（经 dispatcher）用当前网络类型回调一次；传 null 取消监听
+     */
+    void setNetTypeListener(final NetTypeListener listener) {
+        this.netTypeListener = listener;
+        if (listener == null) {
+            return;
+        }
+        dispatcher.dispatch(new Runnable() {
+            @Override
+            public void run() {
+                // 期间若已被替换，则不再回调旧监听
+                if (netTypeListener == listener) {
+                    listener.onNetTypeChanged(mNetType);
+                }
+            }
+        });
     }
 
     /**

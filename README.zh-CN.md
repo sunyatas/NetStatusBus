@@ -16,6 +16,7 @@ NetStatusBus 是一个轻量的 Android 网络状态监听库。用 `@NetSubscri
 - Android 6.0 及以上使用 `NetworkCapabilities` 判断网络类型
 - `register` / `unregister` 线程安全；`init` 可重复调用
 - `register(subscriber, lifecycleOwner)` 在生命周期销毁时自动注销
+- `getNetTypeLiveData()` 以 `LiveData` 形式提供网络类型，无需注解和反射（Kotlin 可用 `asFlow()` 转成 `Flow`）
 - 订阅者以弱引用保存（忘记 `unregister` 不会泄漏 Activity/Fragment）；会查找并按 Class 缓存父类上的 `@NetSubscribe` 方法
 - 库中自带 `ACCESS_NETWORK_STATE` 权限声明和 R8/ProGuard 混淆规则
 
@@ -152,6 +153,28 @@ fun onWifiChanged(netType: NetType) {
     binding.status.text = if (netType == NetType.WIFI) "Wi-Fi 已连接" else "Wi-Fi 已断开"
 }
 ```
+
+### 4. 另一种方式：用 LiveData 观察
+
+如果不想用注解，可以观察 `getNetTypeLiveData()`。`init` 之后它会立即持有当前的 `NetType`，之后每次变化都在主线程更新。遵循标准的 `LiveData` 规则：只有 owner 至少处于 `STARTED` 时观察者才会收到值，owner 销毁时自动移除。
+
+```java
+NetStatusBus.getInstance().getNetTypeLiveData().observe(this, netType -> {
+    tvStatus.setText(netType == NetType.NONE ? "无网络" : netType.name());
+});
+```
+
+Kotlin，以及借助 `androidx.lifecycle:lifecycle-livedata-ktx` 转成 `Flow`：
+
+```kotlin
+NetStatusBus.getInstance().netTypeLiveData.observe(viewLifecycleOwner) { netType ->
+    binding.status.text = netType.name
+}
+
+val netTypes: Flow<NetType> = NetStatusBus.getInstance().netTypeLiveData.asFlow()
+```
+
+`LiveData` 只保留最新值，观察者不活跃期间的中间变化会被合并，适合驱动 UI 状态。需要 `Mode` 过滤或不能错过任何一次变化时，请使用 `@NetSubscribe`。
 
 ## 订阅模式
 

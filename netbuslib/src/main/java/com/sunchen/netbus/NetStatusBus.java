@@ -10,6 +10,11 @@ import android.os.Build;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
+import com.sunchen.netbus.annotation.NetSubscribe;
+import com.sunchen.netbus.type.NetType;
 
 /**
  * Created by 「孙晨」 on 2019/3/31 0031   19:07.
@@ -24,6 +29,7 @@ public class NetStatusBus {
     private volatile Application application;
     private final NetStatusReceiver receiver;
     private ConnectivityManager.NetworkCallback networkCallback;
+    private final MutableLiveData<NetType> netTypeLiveData = new MutableLiveData<>();
 
     public NetStatusBus() {
         receiver = new NetStatusReceiver();
@@ -56,6 +62,13 @@ public class NetStatusBus {
             return;
         }
         receiver.setInitialNetType(com.sunchen.netbus.utils.NetworkUtils.getNetType());
+        // 监听在主线程回调，直接 setValue，保证 LiveData 的值与订阅方法收到的顺序一致
+        receiver.setNetTypeListener(new NetStatusReceiver.NetTypeListener() {
+            @Override
+            public void onNetTypeChanged(NetType netType) {
+                netTypeLiveData.setValue(netType);
+            }
+        });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ConnectivityManager manager = (ConnectivityManager) application
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -109,6 +122,21 @@ public class NetStatusBus {
         if (bound) {
             receiver.registerObserver(subscriber);
         }
+    }
+
+    /**
+     * 以 {@link LiveData} 形式观察网络类型，不需要注解和反射，Java/Kotlin 都可直接使用。
+     * <p>
+     * {@link #init(Application)} 之后会立即带上当前网络类型，之后每次变化都会更新（主线程）。
+     * 观察者遵循 LiveData 的规则：只在 owner 处于 STARTED/RESUMED 时收到值，DESTROYED 时自动移除。
+     * Kotlin 协程用户可以配合 {@code androidx.lifecycle:lifecycle-livedata-ktx} 的 {@code asFlow()} 转成 Flow。
+     * <p>
+     * 注意 LiveData 只保留最新值：观察者不活跃期间的中间变化会被合并，适合驱动 UI 状态；
+     * 需要 {@link com.sunchen.netbus.type.Mode} 过滤或不想错过任何一次变化时，请用 {@link NetSubscribe} 订阅。
+     */
+    @NonNull
+    public LiveData<NetType> getNetTypeLiveData() {
+        return netTypeLiveData;
     }
 
     public void unregister(Object mContext) {

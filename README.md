@@ -16,6 +16,7 @@ NetStatusBus is a lightweight Android library for observing network status chang
 - Network type is detected with `NetworkCapabilities` on Android 6.0+
 - Thread-safe `register` / `unregister`; `init` can be called more than once
 - `register(subscriber, lifecycleOwner)` unregisters automatically when the lifecycle is destroyed
+- `getNetTypeLiveData()` exposes the network type as `LiveData` for annotation-free, reflection-free observing (convert to a Kotlin `Flow` with `asFlow()`)
 - Subscribers are held with weak references (forgotten `unregister` will not leak the Activity/Fragment); `@NetSubscribe` methods on superclasses are discovered and cached per class
 - `ACCESS_NETWORK_STATE` permission and R8/ProGuard rules are bundled with the library
 
@@ -152,6 +153,28 @@ fun onWifiChanged(netType: NetType) {
     binding.status.text = if (netType == NetType.WIFI) "Wi-Fi connected" else "Wi-Fi disconnected"
 }
 ```
+
+### 4. Alternative: observe with LiveData
+
+If you'd rather not use annotations, observe `getNetTypeLiveData()`. It holds the current `NetType` right after `init` and updates on the main thread on every change. Standard `LiveData` rules apply: observers only receive values while their owner is at least `STARTED` and are removed automatically when it is destroyed.
+
+```java
+NetStatusBus.getInstance().getNetTypeLiveData().observe(this, netType -> {
+    tvStatus.setText(netType == NetType.NONE ? "Offline" : netType.name());
+});
+```
+
+Kotlin, including a `Flow` via `androidx.lifecycle:lifecycle-livedata-ktx`:
+
+```kotlin
+NetStatusBus.getInstance().netTypeLiveData.observe(viewLifecycleOwner) { netType ->
+    binding.status.text = netType.name
+}
+
+val netTypes: Flow<NetType> = NetStatusBus.getInstance().netTypeLiveData.asFlow()
+```
+
+`LiveData` keeps only the latest value, so changes that happen while an observer is inactive are merged. That suits UI state. Use `@NetSubscribe` when you need `Mode` filtering or must see every single change.
 
 ## Subscription modes
 
