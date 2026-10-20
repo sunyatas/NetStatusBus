@@ -8,7 +8,6 @@ import com.sunchen.netbus.type.NetType;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -287,22 +286,8 @@ public class NetStatusReceiver {
                     // 子类已声明同签名方法，跳过父类
                     continue;
                 }
-                //注解方法校验返回值
-                Type genericReturnType = method.getGenericReturnType();
-                if (!"void".equalsIgnoreCase(genericReturnType.toString())) {
-                    throw new IllegalArgumentException("you " + method.getName() + "method return value must be void");
-                }
-
-                //判断参数
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                MethodManager methodManager;
-                if (parameterTypes.length == 0) {
-                    methodManager = new MethodManager(null, netSubscribe.mode(), method);
-                } else if (parameterTypes.length == 1) {
-                    methodManager = new MethodManager(parameterTypes[0], netSubscribe.mode(), method);
-                } else {
-                    throw new IllegalArgumentException("Your method " + method.getName() + " can have at most one parameter of type NetType ");
-                }
+                MethodManager methodManager = new MethodManager(
+                        validateSignature(method), netSubscribe.mode(), method);
 
                 if (!method.isAccessible()) {
                     method.setAccessible(true);
@@ -315,6 +300,35 @@ public class NetStatusReceiver {
         List<MethodManager> immutable = Collections.unmodifiableList(methodManagerList);
         List<MethodManager> raced = METHOD_CACHE.putIfAbsent(clazz, immutable);
         return raced != null ? raced : immutable;
+    }
+
+    /**
+     * 校验注解方法签名：返回值必须是 void，最多一个参数，且参数类型必须能接收 {@link NetType}。
+     * 不合规时在 register 阶段直接抛出异常，而不是注册成功后静默地从不回调。
+     *
+     * @return 参数类型；无参方法返回 null
+     */
+    private static Class<?> validateSignature(Method method) {
+        String where = method.getDeclaringClass().getName() + "#" + method.getName();
+        if (method.getReturnType() != void.class) {
+            throw new IllegalArgumentException("@NetSubscribe method " + where
+                    + " must return void, but returns " + method.getReturnType().getName());
+        }
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length == 0) {
+            return null;
+        }
+        if (parameterTypes.length > 1) {
+            throw new IllegalArgumentException("@NetSubscribe method " + where
+                    + " can have at most one parameter of type NetType, but has "
+                    + parameterTypes.length);
+        }
+        Class<?> parameter = parameterTypes[0];
+        if (!parameter.isAssignableFrom(NetType.class)) {
+            throw new IllegalArgumentException("@NetSubscribe method " + where
+                    + " parameter must be NetType, but is " + parameter.getName());
+        }
+        return parameter;
     }
 
     private static String methodSignature(Method method) {

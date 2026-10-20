@@ -145,6 +145,8 @@ A subscriber method must:
 - take either no parameters or a single `NetType` parameter
 - be declared in the registered object's class or any of its superclasses (if a subclass overrides an annotated method, only the subclass version is called)
 
+`register` throws `IllegalArgumentException` naming the offending method if an annotated method breaks these rules (for example a `String` parameter or a non-`void` return), instead of silently never calling it.
+
 Kotlin:
 
 ```kotlin

@@ -145,6 +145,8 @@ public void onNetLost() {
 - 没有参数，或只有一个 `NetType` 类型的参数
 - 声明在被注册对象的类或其任意父类中（子类覆盖了带注解的方法时，只回调子类的版本）
 
+如果带注解的方法不符合以上规则（例如参数是 `String`，或返回值不是 `void`），`register` 会直接抛出 `IllegalArgumentException` 并指出是哪个方法，而不是注册成功后一直不回调。
+
 Kotlin：
 
 ```kotlin
