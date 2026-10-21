@@ -147,6 +147,8 @@ A subscriber method must:
 
 `register` throws `IllegalArgumentException` naming the offending method if an annotated method breaks these rules (for example a `String` parameter or a non-`void` return), instead of silently never calling it.
 
+If a subscriber method throws, the exception is caught and logged to Logcat with tag `NetStatusBus` (naming `Class#method` and the real cause), and every other subscriber still receives the event. Filter Logcat by that tag when a callback seems to do nothing.
+
 Kotlin:
 
 ```kotlin

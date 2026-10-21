@@ -147,6 +147,8 @@ public void onNetLost() {
 
 如果带注解的方法不符合以上规则（例如参数是 `String`，或返回值不是 `void`），`register` 会直接抛出 `IllegalArgumentException` 并指出是哪个方法，而不是注册成功后一直不回调。
 
+订阅方法运行时抛出的异常会被捕获，并以 `NetStatusBus` 为 tag 打印到 Logcat（包含 `类名#方法名` 和真正的异常原因），其他订阅者照常收到回调。回调看起来没生效时，可以按这个 tag 过滤 Logcat 排查。
+
 Kotlin：
 
 ```kotlin

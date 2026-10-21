@@ -2,11 +2,13 @@ package com.sunchen.netbus;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.NetType;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +45,29 @@ public class NetStatusReceiver {
      */
     interface NetTypeListener {
         void onNetTypeChanged(NetType netType);
+    }
+
+    /**
+     * 订阅方法抛出异常时的记录方式（库内部使用，测试中可替换）
+     */
+    interface ErrorLogger {
+        void log(String message, Throwable error);
+    }
+
+    static final String TAG = "NetStatusBus";
+
+    private static final ErrorLogger LOGCAT_LOGGER = new ErrorLogger() {
+        @Override
+        public void log(String message, Throwable error) {
+            Log.e(TAG, message, error);
+        }
+    };
+
+    private static volatile ErrorLogger errorLogger = LOGCAT_LOGGER;
+
+    /** 仅供单元测试替换日志输出；传 null 恢复为 Logcat */
+    static void setErrorLoggerForTest(ErrorLogger logger) {
+        errorLogger = logger != null ? logger : LOGCAT_LOGGER;
     }
 
     /**
@@ -220,9 +245,21 @@ public class NetStatusReceiver {
             } else {
                 execute.invoke(subscriber);
             }
+        } catch (InvocationTargetException e) {
+            // 订阅方法自身抛出的异常：记录真正的原因，不影响其他订阅者继续收到回调
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            errorLogger.log("@NetSubscribe method " + describe(subscriber, execute)
+                    + " threw " + cause.getClass().getName() + " while handling " + netType, cause);
         } catch (Exception e) {
-            e.printStackTrace();
+            errorLogger.log("Failed to invoke @NetSubscribe method "
+                    + describe(subscriber, execute) + " for " + netType, e);
         }
+    }
+
+    private static String describe(Object subscriber, Method method) {
+        return subscriber.getClass().getName() + "#" + method.getName() + "()"
+                + (method.getDeclaringClass() != subscriber.getClass()
+                ? " (declared in " + method.getDeclaringClass().getName() + ")" : "");
     }
 
     protected void registerObserver(final Object mContext) {
