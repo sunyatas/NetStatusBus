@@ -233,6 +233,7 @@ NetworkUtils.openSetting(activity, REQUEST_WIFI);    // same, but get onActivity
 
 - `android.permission.ACCESS_NETWORK_STATE` is declared in the library manifest and merged into your app automatically.
 - The library ships consumer R8/ProGuard rules that keep `@NetSubscribe` methods and the `Mode`/`NetType` enums, so no extra configuration is needed when minification is enabled.
+- CI builds the sample app as a minified release with R8 and fails if any `@NetSubscribe` method is renamed or removed, so these rules are checked on every push.
 
 ## FAQ
 

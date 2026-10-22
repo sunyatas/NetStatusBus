@@ -65,6 +65,11 @@ public class BlankFragment extends Fragment {
                 imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_mobile));
                 break;
 
+            case ETHERNET:
+                tvTips.setText("以太网已连接");
+                imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_wifi));
+                break;
+
             default:
         }
     }

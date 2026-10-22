@@ -32,7 +32,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      * 当监听到 WIFI 连接时，会调用使用该模式的所有方法
      */
     @NetSubscribe(mode = Mode.WIFI_CONNECT)
-    public void mobileChange() {
+    public void onWifiConnected() {
         tvTips.setText("wifi已连接");
         imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_wifi));
     }
@@ -41,7 +41,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      * 当监听到 移动网络 连接时，会调用使用该模式的所有方法
      */
     @NetSubscribe(mode = Mode.MOBILE_CONNECT)
-    public void wifiChange() {
+    public void onMobileConnected() {
         tvTips.setText("移动网络已连接");
         imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_mobile));
     }
@@ -50,7 +50,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      * 当失去网络连接时，会调用使用该模式的所有方法
      */
     @NetSubscribe(mode = Mode.NONE)
-    public void noneNet() {
+    public void onDisconnected() {
         tvTips.setText("网络连接中断...");
         imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_no));
     }

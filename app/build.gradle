@@ -17,7 +17,9 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            // 开启 R8，用来验证库自带的 consumer-rules.pro 能保住 @NetSubscribe 方法
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

@@ -233,6 +233,7 @@ NetworkUtils.openSetting(activity, REQUEST_WIFI);    // 同上，返回时回调
 
 - `android.permission.ACCESS_NETWORK_STATE` 已在库的清单中声明，会自动合并到你的应用中。
 - 库自带消费者混淆规则，保留 `@NetSubscribe` 方法以及 `Mode`/`NetType` 枚举，开启代码压缩时无需额外配置。
+- CI 会用开启 R8 的示例 release 包验证这些规则：如果任何 `@NetSubscribe` 方法被重命名或删除，构建就会失败。
 
 ## 常见问题
 
