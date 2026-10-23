@@ -249,6 +249,10 @@ NetworkUtils.openSetting(activity, REQUEST_WIFI);    // 同上，返回时回调
 **需要注销吗？**
 建议注销。订阅者以弱引用保存，忘记 `unregister` 不会泄漏 Activity 或 Fragment，但已销毁的对象在被垃圾回收之前仍可能收到回调。可以在对应的生命周期回调中调用 `unregister`，或者使用 `register(subscriber, lifecycleOwner)` 让库自动注销。
 
+## 更新日志
+
+自 2019 年 Bintray 版本以来的变化以及 1.0.0 将包含的内容，见 [CHANGELOG.md](CHANGELOG.md)（英文）。
+
 ## 许可证
 
 本项目基于 [Apache License 2.0](LICENSE) 开源。

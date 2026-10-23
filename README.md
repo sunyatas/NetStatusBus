@@ -249,6 +249,10 @@ Ethernet is reported as `NetType.ETHERNET`. A VPN is not a separate type: the ty
 **Do I need to unregister?**
 It's recommended. Subscribers are held by weak references, so a forgotten `unregister` won't leak an Activity or Fragment, but a destroyed object may keep receiving callbacks until it is garbage collected. Either call `unregister` in the matching lifecycle callback, or use `register(subscriber, lifecycleOwner)` to have it done automatically.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for what changed since the 2019 Bintray builds and what is coming in 1.0.0.
+
 ## License
 
 ```

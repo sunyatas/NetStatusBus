@@ -50,3 +50,11 @@ jobs:
             grep -Eq "void $m\((com\.sunchen\.netbus\.type\.NetType)?\)(:[0-9]+)* -> $m$" "$mapping" \
               || { echo "::error::$m was renamed or removed by R8"; exit 1; }
           done
+
+      - name: Publish to Maven local (mirrors the JitPack build)
+        run: |
+          ./gradlew :netbuslib:publishToMavenLocal -Pversion=ci-check --no-daemon --stacktrace
+          dir="$HOME/.m2/repository/com/github/sunyatas/netstatusbus/ci-check"
+          for f in netstatusbus-ci-check.aar netstatusbus-ci-check.pom netstatusbus-ci-check-sources.jar; do
+            test -s "$dir/$f" || { echo "::error::$f missing from publication"; ls -la "$dir" || true; exit 1; }
+          done
