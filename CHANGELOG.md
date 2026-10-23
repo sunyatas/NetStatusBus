@@ -6,8 +6,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
-Everything below is planned to ship as **1.0.0**, the first release published through JitPack.
-Until it is tagged, use `com.github.sunyatas:NetStatusBus:master-SNAPSHOT` or pin a commit hash.
+## [1.0.0] - 2026-10-23
+
+First release published through JitPack:
+`implementation 'com.github.sunyatas:NetStatusBus:1.0.0'`.
 
 ### Added
 - `NetStatusBus.getNetTypeLiveData()`: observe the network type as `LiveData<NetType>` without
@@ -59,4 +61,5 @@ Until it is tagged, use `com.github.sunyatas:NetStatusBus:master-SNAPSHOT` or pi
   parameter or a non-void return type were already rejected.
 - Callbacks always arrive on the main thread.
 
-[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/6aaadb4...master
+[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.0.0...master
+[1.0.0]: https://github.com/sunyatas/NetStatusBus/compare/6aaadb4...v1.0.0

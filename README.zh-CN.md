@@ -45,11 +45,11 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-    implementation 'com.github.sunyatas:NetStatusBus:master-SNAPSHOT'
+    implementation 'com.github.sunyatas:NetStatusBus:1.0.0'
 }
 ```
 
-> 目前还没有打正式版本标签，所以这里使用 `master-SNAPSHOT`（即 `master` 最新代码）。也可以换成某个提交的短哈希来固定版本，例如 `com.github.sunyatas:NetStatusBus:329c932`。发布正式版本后，请改用对应的版本标签。
+> `1.0.0` 是目前最新的正式版本（见 [Releases](https://github.com/sunyatas/NetStatusBus/releases) 和[更新日志](CHANGELOG.md)）。如果想提前使用尚未发布的改动，可以用 `master-SNAPSHOT`（跟随 `master` 最新代码），或者换成某个提交的短哈希，例如 `com.github.sunyatas:NetStatusBus:329c932`。
 
 ### 方式二：从源码构建
 
@@ -69,7 +69,7 @@ dependencies {
 }
 ```
 
-也可以在本仓库中执行 `./gradlew :netbuslib:publishToMavenLocal`，再通过 `mavenLocal()` 依赖 `com.github.sunyatas:netstatusbus:master-SNAPSHOT`。
+也可以在本仓库中执行 `./gradlew :netbuslib:publishToMavenLocal`，再通过 `mavenLocal()` 依赖 `com.github.sunyatas:netstatusbus:1.0.0`。
 
 ## 使用方法
 

@@ -45,11 +45,11 @@ Add the dependency to your app module's `build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'com.github.sunyatas:NetStatusBus:master-SNAPSHOT'
+    implementation 'com.github.sunyatas:NetStatusBus:1.0.0'
 }
 ```
 
-> No release has been tagged yet, so `master-SNAPSHOT` (latest `master`) is used here. You can also pin a specific commit by replacing it with a short commit hash, e.g. `com.github.sunyatas:NetStatusBus:329c932`. Once a release is tagged, use the tag instead.
+> `1.0.0` is the latest release (see [Releases](https://github.com/sunyatas/NetStatusBus/releases) and the [changelog](CHANGELOG.md)). To try unreleased changes, use `master-SNAPSHOT`, which tracks the latest `master`, or pin a short commit hash such as `com.github.sunyatas:NetStatusBus:329c932`.
 
 ### Option 2: Build from source
 
@@ -69,7 +69,7 @@ dependencies {
 }
 ```
 
-Alternatively, run `./gradlew :netbuslib:publishToMavenLocal` in this repository and depend on `com.github.sunyatas:netstatusbus:master-SNAPSHOT` from `mavenLocal()`.
+Alternatively, run `./gradlew :netbuslib:publishToMavenLocal` in this repository and depend on `com.github.sunyatas:netstatusbus:1.0.0` from `mavenLocal()`.
 
 ## Usage
 

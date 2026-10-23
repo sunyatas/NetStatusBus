@@ -41,6 +41,9 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
+// Library version. JitPack passes -Pversion=<tag or commit>, which takes precedence.
+def libraryVersion = '1.0.0'
+
 // JitPack (https://jitpack.io) builds this publication via publishToMavenLocal
 afterEvaluate {
     publishing {
@@ -49,7 +52,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.sunyatas'
                 artifactId = 'netstatusbus'
-                version = (project.version == 'unspecified') ? 'master-SNAPSHOT' : project.version.toString()
+                version = (project.version == 'unspecified') ? libraryVersion : project.version.toString()
             }
         }
     }
