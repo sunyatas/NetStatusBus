@@ -6,6 +6,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+### Fixed
+
+- Registering the same subscriber from several threads at the same time could add it twice, so every network change was delivered to it twice. Registration and unregistration now share a lock; dispatch stays lock-free.
+
 ## [1.0.0] - 2026-10-23
 
 First release published through JitPack:

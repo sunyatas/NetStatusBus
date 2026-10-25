@@ -103,6 +103,12 @@ public class NetStatusReceiver {
 
     private final CopyOnWriteArrayList<ObserverHolder> networkList = new CopyOnWriteArrayList<>();
 
+    /**
+     * 保护“查找已有条目 + 新增条目”这一组合操作，避免多个线程同时 register 同一个订阅者时
+     * 产生重复条目（导致每次变化回调两次）。分发路径只读 CopyOnWriteArrayList，不需要加锁。
+     */
+    private final Object observersLock = new Object();
+
     private final Dispatcher dispatcher;
 
     private volatile NetTypeListener netTypeListener;
@@ -266,14 +272,17 @@ public class NetStatusReceiver {
         if (mContext == null) {
             return;
         }
-        ObserverHolder existing = findHolder(mContext);
+        // 在锁外解析注解（可能抛出签名错误），锁内只做查重和新增
+        List<MethodManager> methodList = findAnnotationMethods(mContext.getClass());
         final ObserverHolder holder;
-        if (existing != null) {
-            holder = existing;
-        } else {
-            List<MethodManager> methodList = findAnnotationMethods(mContext.getClass());
-            holder = new ObserverHolder(mContext, methodList);
-            networkList.add(holder);
+        synchronized (observersLock) {
+            ObserverHolder existing = findHolder(mContext);
+            if (existing != null) {
+                holder = existing;
+            } else {
+                holder = new ObserverHolder(mContext, methodList);
+                networkList.add(holder);
+            }
         }
         // 注册后立即回调一次当前网络状态
         final NetType current = mNetType;
@@ -386,15 +395,19 @@ public class NetStatusReceiver {
         if (mContext == null) {
             return;
         }
-        for (ObserverHolder holder : networkList) {
-            if (holder.isFor(mContext) || holder.getSubscriber() == null) {
-                networkList.remove(holder);
+        synchronized (observersLock) {
+            for (ObserverHolder holder : networkList) {
+                if (holder.isFor(mContext) || holder.getSubscriber() == null) {
+                    networkList.remove(holder);
+                }
             }
         }
     }
 
     public void unRegisterAllObserver() {
-        networkList.clear();
+        synchronized (observersLock) {
+            networkList.clear();
+        }
     }
 
     /**

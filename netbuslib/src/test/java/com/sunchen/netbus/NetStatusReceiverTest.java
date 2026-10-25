@@ -218,6 +218,41 @@ public class NetStatusReceiverTest {
         }
     }
 
+    @Test
+    public void concurrentRegisterOfSameSubscriberKeepsSingleEntry() throws Exception {
+        dispatcher.runImmediately = false;
+        final int threads = 8;
+        for (int round = 0; round < 200; round++) {
+            receiver.unRegisterAllObserver();
+            final Subscriber s = new Subscriber();
+            final CountDownLatch start = new CountDownLatch(1);
+            final CountDownLatch done = new CountDownLatch(threads);
+            final AtomicReference<Throwable> error = new AtomicReference<>();
+            for (int t = 0; t < threads; t++) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            start.await();
+                            receiver.registerObserver(s);
+                        } catch (Throwable e) {
+                            error.set(e);
+                        } finally {
+                            done.countDown();
+                        }
+                    }
+                }).start();
+            }
+            start.countDown();
+            assertTrue(done.await(10, TimeUnit.SECONDS));
+            if (error.get() != null) {
+                throw new AssertionError(error.get());
+            }
+            assertEquals("round " + round, 1, receiver.aliveObserverCount());
+        }
+        dispatcher.pending.clear();
+    }
+
     public static class WifiSubscriber {
         final java.util.List<String> calls = new java.util.ArrayList<>();
 
