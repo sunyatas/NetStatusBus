@@ -139,10 +139,73 @@ public class NetStatusBus {
         return netTypeLiveData;
     }
 
+    /**
+     * Adds an annotation-free, reflection-free listener. It is called once with the current
+     * {@link NetType} right after being added, then on every change, always on the main thread.
+     * Unlike {@link #getNetTypeLiveData()}, every change is delivered even when no UI is visible,
+     * so this also works from a {@code Service} or other code without a lifecycle.
+     * <p>
+     * The listener is held strongly (so lambdas work); call {@link #removeListener} when done,
+     * or use {@link #addListener(OnNetTypeChangeListener, LifecycleOwner)}. Adding the same
+     * instance twice has no effect.
+     * <p>
+     * 添加无注解、无反射的监听：添加后立即回调当前网络类型，之后每次变化都回调（主线程）。
+     * 监听以强引用持有，用完请调用 {@link #removeListener}，或使用绑定生命周期的重载。
+     */
+    public void addListener(@NonNull OnNetTypeChangeListener listener) {
+        if (application == null) {
+            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
+        }
+        if (listener == null) {
+            throw new IllegalArgumentException("listener must not be null");
+        }
+        receiver.addListener(listener);
+    }
+
+    /**
+     * Like {@link #addListener(OnNetTypeChangeListener)}, but removes the listener automatically
+     * when {@code owner} reaches {@code DESTROYED}. Not added if the owner is already destroyed.
+     * Must be called on the main thread.
+     * <p>
+     * 添加监听，并在 owner 进入 DESTROYED 时自动移除；owner 已销毁时不添加。必须在主线程调用。
+     */
+    @MainThread
+    public void addListener(@NonNull OnNetTypeChangeListener listener, @NonNull LifecycleOwner owner) {
+        if (application == null) {
+            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
+        }
+        if (listener == null || owner == null) {
+            throw new IllegalArgumentException("listener and owner must not be null");
+        }
+        boolean bound = LifecycleBinding.bind(listener, owner.getLifecycle(),
+                new LifecycleBinding.Unregistrar() {
+                    @Override
+                    public void unregister(Object l) {
+                        receiver.removeListener((OnNetTypeChangeListener) l);
+                    }
+                });
+        if (bound) {
+            receiver.addListener(listener);
+        }
+    }
+
+    /**
+     * Removes a listener added with {@code addListener}. Safe to call more than once.
+     * <p>
+     * 移除通过 {@code addListener} 添加的监听，可重复调用。
+     */
+    public void removeListener(@NonNull OnNetTypeChangeListener listener) {
+        receiver.removeListener(listener);
+    }
+
     public void unregister(Object mContext) {
         receiver.unRegisterObserver(mContext);
     }
 
+    /**
+     * Unregisters every {@code @NetSubscribe} subscriber and removes every listener added with
+     * {@code addListener}. {@link #getNetTypeLiveData()} observers are not affected.
+     */
     public void unregisterAllObserver() {
         receiver.unRegisterAllObserver();
     }

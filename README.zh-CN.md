@@ -17,6 +17,7 @@ NetStatusBus 是一个轻量的 Android 网络状态监听库。用 `@NetSubscri
 - `register` / `unregister` 线程安全；`init` 可重复调用
 - `register(subscriber, lifecycleOwner)` 在生命周期销毁时自动注销
 - `getNetTypeLiveData()` 以 `LiveData` 形式提供网络类型，无需注解和反射（Kotlin 可用 `asFlow()` 转成 `Flow`）
+- `addListener(OnNetTypeChangeListener)` 是普通回调，无需注解和反射，不会错过任何一次变化，在 `Service` 中也能用（可传入 `LifecycleOwner` 自动移除）
 - 订阅者以弱引用保存（忘记 `unregister` 不会泄漏 Activity/Fragment）；会查找并按 Class 缓存父类上的 `@NetSubscribe` 方法
 - 库中自带 `ACCESS_NETWORK_STATE` 权限声明和 R8/ProGuard 混淆规则
 
@@ -179,6 +180,34 @@ val netTypes: Flow<NetType> = NetStatusBus.getInstance().netTypeLiveData.asFlow(
 ```
 
 `LiveData` 只保留最新值，观察者不活跃期间的中间变化会被合并，适合驱动 UI 状态。需要 `Mode` 过滤或不能错过任何一次变化时，请使用 `@NetSubscribe`。
+
+### 5. 另一种方式：普通监听
+
+`addListener` 接收一个 `OnNetTypeChangeListener`：不用注解、不用反射，也不依赖 R8 规则。添加后会立即用当前的 `NetType` 回调一次，之后每次变化都会回调，始终在主线程。与 `LiveData` 不同，界面在后台时也会继续收到变化，所以在 `Service` 或 repository 里也能使用。
+
+```java
+private final OnNetTypeChangeListener listener = netType -> {
+    if (netType == NetType.NONE) {
+        pauseUploads();
+    } else {
+        resumeUploads();
+    }
+};
+
+NetStatusBus.getInstance().addListener(listener);
+// ...
+NetStatusBus.getInstance().removeListener(listener);
+```
+
+监听以强引用持有（这样 lambda 才能正常工作），用完后请移除；也可以传入 `LifecycleOwner`，在 owner 销毁时自动移除：
+
+```kotlin
+NetStatusBus.getInstance().addListener({ netType ->
+    binding.status.text = netType.name
+}, viewLifecycleOwner)
+```
+
+同一个监听实例重复添加不会生效两次；`unregisterAllObserver()` 会同时移除监听和订阅者。
 
 ## 订阅模式
 

@@ -17,6 +17,7 @@ NetStatusBus is a lightweight Android library for observing network status chang
 - Thread-safe `register` / `unregister`; `init` can be called more than once
 - `register(subscriber, lifecycleOwner)` unregisters automatically when the lifecycle is destroyed
 - `getNetTypeLiveData()` exposes the network type as `LiveData` for annotation-free, reflection-free observing (convert to a Kotlin `Flow` with `asFlow()`)
+- `addListener(OnNetTypeChangeListener)` is a plain callback with no annotations or reflection that sees every change, also from a `Service` (optionally removed automatically with a `LifecycleOwner`)
 - Subscribers are held with weak references (forgotten `unregister` will not leak the Activity/Fragment); `@NetSubscribe` methods on superclasses are discovered and cached per class
 - `ACCESS_NETWORK_STATE` permission and R8/ProGuard rules are bundled with the library
 
@@ -179,6 +180,34 @@ val netTypes: Flow<NetType> = NetStatusBus.getInstance().netTypeLiveData.asFlow(
 ```
 
 `LiveData` keeps only the latest value, so changes that happen while an observer is inactive are merged. That suits UI state. Use `@NetSubscribe` when you need `Mode` filtering or must see every single change.
+
+### 5. Alternative: a plain listener
+
+`addListener` takes an `OnNetTypeChangeListener`: no annotations, no reflection, and no R8 rules involved. The listener is called once with the current `NetType` right after it is added, then on every change, always on the main thread. Unlike `LiveData`, it keeps receiving changes while the UI is in the background, so it also works in a `Service` or a repository.
+
+```java
+private final OnNetTypeChangeListener listener = netType -> {
+    if (netType == NetType.NONE) {
+        pauseUploads();
+    } else {
+        resumeUploads();
+    }
+};
+
+NetStatusBus.getInstance().addListener(listener);
+// ...
+NetStatusBus.getInstance().removeListener(listener);
+```
+
+The listener is held with a strong reference (so lambdas work), so remove it when you're done, or pass a `LifecycleOwner` to remove it automatically when the owner is destroyed:
+
+```kotlin
+NetStatusBus.getInstance().addListener({ netType ->
+    binding.status.text = netType.name
+}, viewLifecycleOwner)
+```
+
+Adding the same listener instance twice has no effect, and `unregisterAllObserver()` removes listeners as well as subscribers.
 
 ## Subscription modes
 

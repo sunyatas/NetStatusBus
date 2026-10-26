@@ -6,6 +6,14 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+### Added
+
+- `NetStatusBus.addListener(OnNetTypeChangeListener)` / `removeListener(...)`: an annotation-free, reflection-free callback for Java and Kotlin. It receives the current type right away and then every change on the main thread, including while the UI is in the background (unlike `LiveData`). `addListener(listener, LifecycleOwner)` removes it automatically on `DESTROYED`. A listener that throws is logged and does not affect other listeners or subscribers.
+
+### Changed
+
+- `unregisterAllObserver()` also removes listeners added with `addListener`.
+
 ### Fixed
 
 - Registering the same subscriber from several threads at the same time could add it twice, so every network change was delivered to it twice. Registration and unregistration now share a lock; dispatch stays lock-free.

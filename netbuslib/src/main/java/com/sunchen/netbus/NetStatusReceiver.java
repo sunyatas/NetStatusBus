@@ -113,6 +113,9 @@ public class NetStatusReceiver {
 
     private volatile NetTypeListener netTypeListener;
 
+    /** 公开的无注解监听（强引用，需调用方移除或绑定生命周期） */
+    private final CopyOnWriteArrayList<OnNetTypeChangeListener> listeners = new CopyOnWriteArrayList<>();
+
     protected NetStatusReceiver() {
         this(new MainThreadDispatcher());
     }
@@ -137,6 +140,12 @@ public class NetStatusReceiver {
                 NetTypeListener listener = netTypeListener;
                 if (listener != null) {
                     listener.onNetTypeChanged(netType);
+                }
+                for (OnNetTypeChangeListener l : listeners) {
+                    // 本轮分发中已被前面的回调移除的监听不再回调
+                    if (listeners.contains(l)) {
+                        invokeListener(l, netType);
+                    }
                 }
                 for (ObserverHolder holder : networkList) {
                     Object subscriber = holder.getSubscriber();
@@ -179,6 +188,49 @@ public class NetStatusReceiver {
                 }
             }
         });
+    }
+
+    /**
+     * 添加无注解监听，并立即（经 dispatcher）用当前网络类型回调一次。同一个监听重复添加只保留一份。
+     */
+    void addListener(final OnNetTypeChangeListener listener) {
+        if (listener == null) {
+            return;
+        }
+        if (!listeners.addIfAbsent(listener)) {
+            return;
+        }
+        final NetType current = mNetType;
+        dispatcher.dispatch(new Runnable() {
+            @Override
+            public void run() {
+                // 期间若已被移除，则不再回调
+                if (listeners.contains(listener)) {
+                    invokeListener(listener, current);
+                }
+            }
+        });
+    }
+
+    void removeListener(OnNetTypeChangeListener listener) {
+        if (listener != null) {
+            listeners.remove(listener);
+        }
+    }
+
+    /** 已添加的无注解监听数量（测试与诊断用） */
+    int listenerCount() {
+        return listeners.size();
+    }
+
+    private static void invokeListener(OnNetTypeChangeListener listener, NetType netType) {
+        try {
+            listener.onNetTypeChanged(netType);
+        } catch (RuntimeException e) {
+            // 与 @NetSubscribe 一致：记录异常，不影响其他监听和订阅者
+            errorLogger.log("OnNetTypeChangeListener " + listener.getClass().getName()
+                    + " threw " + e.getClass().getName() + " while handling " + netType, e);
+        }
     }
 
     /**
@@ -408,6 +460,7 @@ public class NetStatusReceiver {
         synchronized (observersLock) {
             networkList.clear();
         }
+        listeners.clear();
     }
 
     /**
