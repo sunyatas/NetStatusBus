@@ -209,6 +209,14 @@ NetStatusBus.getInstance().addListener({ netType ->
 
 同一个监听实例重复添加不会生效两次；`unregisterAllObserver()` 会同时移除监听和订阅者。
 
+### 示例应用
+
+[`app`](app) 模块把几种用法放在一起演示：
+
+- `MainActivity`（继承 `BaseActivity`）：按 `Mode` 过滤的 `@NetSubscribe` 方法，在 `onStart` 注册、`onStop` 注销。
+- `BlankFragment`：接收 `NetType` 参数的 `@NetSubscribe` 方法，用 `register(this, getViewLifecycleOwner())` 注册，自动注销。
+- `Main2Activity`：用 `addListener(listener, this)` 在标题栏副标题显示当前网络，用 `getNetTypeLiveData()` 打印每次变化，都不需要注解。
+
 ## 订阅模式
 
 `@NetSubscribe` 默认使用 `Mode.AUTO`。

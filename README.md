@@ -209,6 +209,14 @@ NetStatusBus.getInstance().addListener({ netType ->
 
 Adding the same listener instance twice has no effect, and `unregisterAllObserver()` removes listeners as well as subscribers.
 
+### Sample app
+
+The [`app`](app) module shows every style side by side:
+
+- `MainActivity` (via `BaseActivity`): `@NetSubscribe` methods filtered by `Mode`, registered in `onStart` and unregistered in `onStop`.
+- `BlankFragment`: a `@NetSubscribe(NetType)` method registered with `register(this, getViewLifecycleOwner())`, so it unregisters itself.
+- `Main2Activity`: `addListener(listener, this)` shows the current network in the action bar subtitle, and `getNetTypeLiveData()` logs each change; neither needs annotations.
+
 ## Subscription modes
 
 `@NetSubscribe` defaults to `Mode.AUTO`.
