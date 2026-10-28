@@ -247,7 +247,7 @@ The [`app`](app) module shows every style side by side:
 
 ## Utilities
 
-`com.sunchen.netbus.utils.NetworkUtils` (requires `init` to have been called):
+`com.sunchen.netbus.utils.NetworkUtils`:
 
 ```java
 NetType type = NetworkUtils.getNetType();            // current network type
@@ -257,6 +257,8 @@ MobileGeneration g = NetworkUtils.getMobileGeneration(); // G2/G3/G4/G5/UNKNOWN,
 NetworkUtils.openSetting(context);                   // open the system Wi-Fi settings
 NetworkUtils.openSetting(activity, REQUEST_WIFI);    // same, but get onActivityResult on return
 ```
+
+The no-argument methods use the `Application` passed to `init` and throw `IllegalStateException` if `init` has not been called yet. Each of them also has an overload that takes a `Context` (`getNetType(context)`, `isNetworkAvailable(context)`, `isVpnActive(context)`, `getMobileGeneration(context)`) and works without `init`, for example in a `BroadcastReceiver`, a WorkManager worker, or another library. Only the application context is used, so passing an `Activity` does not leak it.
 
 `openSetting(context)` accepts any `Context`; with a non-Activity context (for example the `Application`) it adds `FLAG_ACTIVITY_NEW_TASK` for you. `openSetting(context, requestCode)` uses `startActivityForResult` when the context is (or wraps) an `Activity` and `requestCode >= 0`, so your `onActivityResult` runs when the user comes back. The settings screen normally returns `RESULT_CANCELED`, so call `NetworkUtils.getNetType()` there to read the new state. A negative `requestCode` means no result is needed. If the device has no Wi-Fi settings screen, the main settings screen opens instead.
 

@@ -10,8 +10,11 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - `NetStatusBus.addListener(OnNetTypeChangeListener)` / `removeListener(...)`: an annotation-free, reflection-free callback for Java and Kotlin. It receives the current type right away and then every change on the main thread, including while the UI is in the background (unlike `LiveData`). `addListener(listener, LifecycleOwner)` removes it automatically on `DESTROYED`. A listener that throws is logged and does not affect other listeners or subscribers.
 
+- `NetworkUtils.getNetType(Context)`, `isNetworkAvailable(Context)`, `isVpnActive(Context)` and `getMobileGeneration(Context)`: the same checks without calling `init` first (for example in a `BroadcastReceiver`, a WorkManager worker, or another library). Only the application context is kept.
+
 ### Changed
 
+- Using the bus or a no-argument `NetworkUtils` method before `init` now throws `IllegalStateException` with a message that explains the fix, instead of a bare `RuntimeException("application is empty")`. `IllegalStateException` is a `RuntimeException`, so existing `catch` blocks still work.
 - `unregisterAllObserver()` also removes listeners added with `addListener`.
 
 ### Fixed

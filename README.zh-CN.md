@@ -247,7 +247,7 @@ NetStatusBus.getInstance().addListener({ netType ->
 
 ## 工具方法
 
-`com.sunchen.netbus.utils.NetworkUtils`（需要先调用 `init`）：
+`com.sunchen.netbus.utils.NetworkUtils`：
 
 ```java
 NetType type = NetworkUtils.getNetType();            // 当前网络类型
@@ -257,6 +257,8 @@ MobileGeneration g = NetworkUtils.getMobileGeneration(); // G2/G3/G4/G5/UNKNOWN�
 NetworkUtils.openSetting(context);                   // 打开系统 Wi-Fi 设置
 NetworkUtils.openSetting(activity, REQUEST_WIFI);    // 同上，返回时回调 onActivityResult
 ```
+
+无参数的方法使用 `init` 传入的 `Application`，如果还没调用 `init` 会抛出 `IllegalStateException`。它们都有一个接收 `Context` 的重载（`getNetType(context)`、`isNetworkAvailable(context)`、`isVpnActive(context)`、`getMobileGeneration(context)`），不需要先调用 `init`，可以在 `BroadcastReceiver`、WorkManager 任务或其他库中使用。内部只使用 application context，传入 `Activity` 也不会造成泄漏。
 
 `openSetting(context)` 可以传入任意 `Context`；传入非 Activity（例如 `Application`）时会自动加上 `FLAG_ACTIVITY_NEW_TASK`。`openSetting(context, requestCode)` 在 `context` 是（或包装了）`Activity` 且 `requestCode >= 0` 时使用 `startActivityForResult`，用户返回时会回调你的 `onActivityResult`。系统设置页通常返回 `RESULT_CANCELED`，所以请在回调里调用 `NetworkUtils.getNetType()` 读取最新状态。`requestCode` 传负数表示不需要返回结果。如果设备上没有 Wi-Fi 设置页，会退回到系统设置首页。
 

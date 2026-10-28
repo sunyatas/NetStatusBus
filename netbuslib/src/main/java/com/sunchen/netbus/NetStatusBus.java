@@ -45,7 +45,8 @@ public class NetStatusBus {
 
     public Application getApplication() {
         if (application == null) {
-            throw new RuntimeException("application is empty");
+            throw new IllegalStateException("NetStatusBus is not initialized: call NetStatusBus.getInstance().init(application) first, "
+                    + "or use the NetworkUtils methods that take a Context");
         }
         return application;
     }

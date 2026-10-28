@@ -40,9 +40,18 @@ public class NetworkUtils {
      * 以便仅能访问局域网 / 强制门户的 Wi-Fi 仍被视为已连接。
      */
     public static boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getInstance()
-                .getApplication()
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        return isNetworkAvailable(NetStatusBus.getInstance().getApplication());
+    }
+
+    /**
+     * 同 {@link #isNetworkAvailable()}，但使用传入的 {@link Context}，
+     * 不需要先调用 {@code NetStatusBus.getInstance().init(...)}
+     * （例如在 BroadcastReceiver、WorkManager 任务或其他库中使用）。
+     *
+     * @throws IllegalArgumentException context 为 null 时
+     */
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager = connectivityManager(context);
         if (connectivityManager == null) {
             return false;
         }
@@ -95,7 +104,7 @@ public class NetworkUtils {
      * 获取当前的网络类型
      */
     public static NetType getNetType() {
-        return getNetType(null);
+        return getNetType((Network) null);
     }
 
     /**
@@ -103,9 +112,20 @@ public class NetworkUtils {
      * Android 6.0+ 使用 NetworkCapabilities 判断，旧系统回退到 NetworkInfo。
      */
     public static NetType getNetType(Network lostNetwork) {
-        ConnectivityManager connectivityManager = (ConnectivityManager) NetStatusBus.getInstance()
-                .getApplication()
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        return getNetType(NetStatusBus.getInstance().getApplication(), lostNetwork);
+    }
+
+    /**
+     * 同 {@link #getNetType()}，但使用传入的 {@link Context}，不需要先调用 init。
+     *
+     * @throws IllegalArgumentException context 为 null 时
+     */
+    public static NetType getNetType(Context context) {
+        return getNetType(context, null);
+    }
+
+    private static NetType getNetType(Context context, Network lostNetwork) {
+        ConnectivityManager connectivityManager = connectivityManager(context);
         if (connectivityManager == null) {
             return NetType.NONE;
         }
@@ -203,12 +223,19 @@ public class NetworkUtils {
      * 当前是否有 VPN 处于连接状态（Android 6.0+，旧系统返回 false）。
      */
     public static boolean isVpnActive() {
+        return isVpnActive(NetStatusBus.getInstance().getApplication());
+    }
+
+    /**
+     * 同 {@link #isVpnActive()}，但使用传入的 {@link Context}，不需要先调用 init。
+     *
+     * @throws IllegalArgumentException context 为 null 时
+     */
+    public static boolean isVpnActive(Context context) {
+        ConnectivityManager cm = connectivityManager(context);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return false;
         }
-        ConnectivityManager cm = (ConnectivityManager) NetStatusBus.getInstance()
-                .getApplication()
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) {
             return false;
         }
@@ -228,10 +255,19 @@ public class NetworkUtils {
      * 注意：5G NSA（非独立组网）在系统层面通常报告为 LTE，因此会返回 G4。
      */
     public static MobileGeneration getMobileGeneration() {
-        if (getNetType() != NetType.MOBILE) {
+        return getMobileGeneration(NetStatusBus.getInstance().getApplication());
+    }
+
+    /**
+     * 同 {@link #getMobileGeneration()}，但使用传入的 {@link Context}，不需要先调用 init。
+     *
+     * @throws IllegalArgumentException context 为 null 时
+     */
+    public static MobileGeneration getMobileGeneration(Context context) {
+        context = appContext(context);
+        if (getNetType(context) != NetType.MOBILE) {
             return MobileGeneration.UNKNOWN;
         }
-        Context context = NetStatusBus.getInstance().getApplication();
         if (context.checkPermission(android.Manifest.permission.READ_PHONE_STATE,
                 Process.myPid(), Process.myUid()) != PackageManager.PERMISSION_GRANTED) {
             return MobileGeneration.UNKNOWN;
@@ -359,6 +395,25 @@ public class NetworkUtils {
             current = base;
         }
         return null;
+    }
+
+    /**
+     * 返回 Application 级别的 Context，避免持有 Activity；context 为 null 时抛出异常
+     */
+    private static Context appContext(Context context) {
+        requireContext(context);
+        Context app = context.getApplicationContext();
+        return app != null ? app : context;
+    }
+
+    private static ConnectivityManager connectivityManager(Context context) {
+        return (ConnectivityManager) appContext(context).getSystemService(Context.CONNECTIVITY_SERVICE);
+    }
+
+    static void requireContext(Context context) {
+        if (context == null) {
+            throw new IllegalArgumentException("context must not be null");
+        }
     }
 
 }
