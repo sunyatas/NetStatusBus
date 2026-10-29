@@ -32,7 +32,12 @@ public class NetStatusBus {
     private final MutableLiveData<NetType> netTypeLiveData = new MutableLiveData<>();
 
     public NetStatusBus() {
-        receiver = new NetStatusReceiver();
+        this(new NetStatusReceiver());
+    }
+
+    /** For tests: lets them supply a receiver with a synchronous dispatcher. */
+    NetStatusBus(NetStatusReceiver receiver) {
+        this.receiver = receiver;
     }
 
     private static class HolderClass {
@@ -44,11 +49,41 @@ public class NetStatusBus {
     }
 
     public Application getApplication() {
+        requireInitialized();
+        return application;
+    }
+
+    /**
+     * Returns {@code true} once {@link #init(Application)} has been called.
+     * <p>
+     * 是否已调用过 {@link #init(Application)}。
+     */
+    public boolean isInitialized() {
+        return application != null;
+    }
+
+    /**
+     * Returns the network type the bus currently knows about: the type recorded by
+     * {@link #init(Application)}, updated on every change the bus delivers. It reads a cached
+     * value and does not query the system, so it is cheap to call from any thread. It is the
+     * same value subscribers and listeners last received. To query the system directly, use
+     * {@link com.sunchen.netbus.utils.NetworkUtils#getNetType()}.
+     * <p>
+     * 返回总线当前记录的网络类型（init 时记录，之后随每次分发更新），只读缓存、不查询系统，任意线程可调用。
+     *
+     * @throws IllegalStateException if {@link #init(Application)} has not been called
+     */
+    @NonNull
+    public NetType getCurrentNetType() {
+        requireInitialized();
+        return receiver.getCurrentNetType();
+    }
+
+    private void requireInitialized() {
         if (application == null) {
             throw new IllegalStateException("NetStatusBus is not initialized: call NetStatusBus.getInstance().init(application) first, "
                     + "or use the NetworkUtils methods that take a Context");
         }
-        return application;
     }
 
 
@@ -90,9 +125,7 @@ public class NetStatusBus {
     }
 
     public void register(Object mContext) {
-        if (application == null) {
-            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
-        }
+        requireInitialized();
         receiver.registerObserver(mContext);
     }
 
@@ -107,9 +140,7 @@ public class NetStatusBus {
      */
     @MainThread
     public void register(@NonNull Object subscriber, @NonNull LifecycleOwner owner) {
-        if (application == null) {
-            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
-        }
+        requireInitialized();
         if (subscriber == null || owner == null) {
             throw new IllegalArgumentException("subscriber and owner must not be null");
         }
@@ -154,9 +185,7 @@ public class NetStatusBus {
      * 监听以强引用持有，用完请调用 {@link #removeListener}，或使用绑定生命周期的重载。
      */
     public void addListener(@NonNull OnNetTypeChangeListener listener) {
-        if (application == null) {
-            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
-        }
+        requireInitialized();
         if (listener == null) {
             throw new IllegalArgumentException("listener must not be null");
         }
@@ -172,9 +201,7 @@ public class NetStatusBus {
      */
     @MainThread
     public void addListener(@NonNull OnNetTypeChangeListener listener, @NonNull LifecycleOwner owner) {
-        if (application == null) {
-            throw new IllegalArgumentException("you must NetStatusBus.getInstance().init(getApplication) first");
-        }
+        requireInitialized();
         if (listener == null || owner == null) {
             throw new IllegalArgumentException("listener and owner must not be null");
         }

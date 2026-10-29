@@ -12,9 +12,11 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - `NetworkUtils.getNetType(Context)`, `isNetworkAvailable(Context)`, `isVpnActive(Context)` and `getMobileGeneration(Context)`: the same checks without calling `init` first (for example in a `BroadcastReceiver`, a WorkManager worker, or another library). Only the application context is kept.
 
+- `NetStatusBus.getCurrentNetType()`: the type the bus last delivered, read from a cached field without querying the system (any thread). `NetStatusBus.isInitialized()` tells whether `init` has been called.
+
 ### Changed
 
-- Using the bus or a no-argument `NetworkUtils` method before `init` now throws `IllegalStateException` with a message that explains the fix, instead of a bare `RuntimeException("application is empty")`. `IllegalStateException` is a `RuntimeException`, so existing `catch` blocks still work.
+- Using the bus or a no-argument `NetworkUtils` method before `init` now throws `IllegalStateException` with a message that explains the fix, instead of a bare `RuntimeException("application is empty")`; `register` and `addListener` called before `init` now throw the same `IllegalStateException` instead of `IllegalArgumentException`. `IllegalStateException` is a `RuntimeException`, so existing `catch` blocks still work.
 - `unregisterAllObserver()` also removes listeners added with `addListener`.
 
 ### Fixed

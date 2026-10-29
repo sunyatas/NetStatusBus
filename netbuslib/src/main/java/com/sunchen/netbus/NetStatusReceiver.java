@@ -236,6 +236,11 @@ public class NetStatusReceiver {
     /**
      * 设置初始网络类型（不分发）
      */
+    /** 当前记录的网络类型（只读缓存） */
+    NetType getCurrentNetType() {
+        return mNetType;
+    }
+
     void setInitialNetType(NetType netType) {
         this.mNetType = netType;
     }

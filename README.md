@@ -90,7 +90,7 @@ public class App extends Application {
 
 ### 2. Register and unregister subscribers
 
-Register in line with your component's lifecycle. Calling `register` before `init` throws an exception.
+Register in line with your component's lifecycle. Calling `register`, `addListener` or `getCurrentNetType` before `init` throws `IllegalStateException`; `NetStatusBus.getInstance().isInitialized()` tells you whether `init` has run.
 
 ```java
 @Override
@@ -162,6 +162,8 @@ fun onWifiChanged(netType: NetType) {
 ### 4. Alternative: observe with LiveData
 
 If you'd rather not use annotations, observe `getNetTypeLiveData()`. It holds the current `NetType` right after `init` and updates on the main thread on every change. Standard `LiveData` rules apply: observers only receive values while their owner is at least `STARTED` and are removed automatically when it is destroyed.
+
+To read the current type once without observing, call `NetStatusBus.getInstance().getCurrentNetType()`. It returns the value the bus last delivered (the same one subscribers and listeners saw), reads a cached field instead of querying the system, and can be called from any thread.
 
 ```java
 NetStatusBus.getInstance().getNetTypeLiveData().observe(this, netType -> {

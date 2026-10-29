@@ -90,7 +90,7 @@ public class App extends Application {
 
 ### 2. 注册和注销订阅者
 
-根据组件的生命周期注册和注销。在 `init` 之前调用 `register` 会抛出异常。
+根据组件的生命周期注册和注销。在 `init` 之前调用 `register`、`addListener` 或 `getCurrentNetType`会抛出 `IllegalStateException`；可以用 `NetStatusBus.getInstance().isInitialized()` 判断是否已经 `init`。
 
 ```java
 @Override
@@ -162,6 +162,8 @@ fun onWifiChanged(netType: NetType) {
 ### 4. 另一种方式：用 LiveData 观察
 
 如果不想用注解，可以观察 `getNetTypeLiveData()`。`init` 之后它会立即持有当前的 `NetType`，之后每次变化都在主线程更新。遵循标准的 `LiveData` 规则：只有 owner 至少处于 `STARTED` 时观察者才会收到值，owner 销毁时自动移除。
+
+如果只想读一次当前网络类型而不观察，可以调用 `NetStatusBus.getInstance().getCurrentNetType()`。它返回总线最近一次分发的值（与订阅者和监听器收到的一致），只读缓存、不查询系统，任意线程都可以调用。
 
 ```java
 NetStatusBus.getInstance().getNetTypeLiveData().observe(this, netType -> {
