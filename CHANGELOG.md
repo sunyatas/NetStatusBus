@@ -22,6 +22,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 ### Fixed
 
 - Registering the same subscriber from several threads at the same time could add it twice, so every network change was delivered to it twice. Registration and unregistration now share a lock; dispatch stays lock-free.
+- Calling `register` or `addListener` off the main thread while the network was changing could deliver the "current type" callback after a newer change had already been delivered, so the subscriber or listener ended up on an outdated type until the next change (`getNetTypeLiveData()` was not affected). The initial callback is now skipped when a newer change has already been delivered.
 
 ## [1.0.0] - 2026-10-23
 

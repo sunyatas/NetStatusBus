@@ -116,7 +116,8 @@ public class NetTypeListenerTest {
         assertTrue(recorder.values.isEmpty());
 
         dispatcher.runPending();
-        assertEquals(Arrays.asList(NetType.ETHERNET, NetType.ETHERNET), recorder.values);
+        // 初始回调带的是设置监听时的类型，随后才是变化，顺序与实际发生的一致
+        assertEquals(Arrays.asList(NetType.NONE, NetType.ETHERNET), recorder.values);
     }
 
     @Test

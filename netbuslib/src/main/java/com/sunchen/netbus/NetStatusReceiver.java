@@ -101,6 +101,20 @@ public class NetStatusReceiver {
 
     private volatile NetType mNetType;//网络类型
 
+    /**
+     * 每次 {@link #post} 加一（与 mNetType 在同一把锁内更新），用来判断两次读取之间是否发生过变化。
+     */
+    private long postedVersion;
+
+    /**
+     * 已经开始分发（在 dispatcher 线程上运行）的最新一次变化的版本号。
+     * <p>
+     * 在后台线程 register/addListener 时，“读取当前类型”和“把初始回调投递到主线程”之间，
+     * 网络回调线程可能已经 post 了新类型，并且它的分发任务排在初始回调之前。
+     * 初始回调运行时如果发现更新的变化已经分发过，就跳过旧值，避免订阅者最后停留在过期的网络类型上。
+     */
+    private volatile long deliveredVersion;
+
     private final CopyOnWriteArrayList<ObserverHolder> networkList = new CopyOnWriteArrayList<>();
 
     /**
@@ -130,13 +144,18 @@ public class NetStatusReceiver {
      */
     protected void post(final NetType netType) {
         final NetType previous;
+        final long version;
         synchronized (this) {
             previous = this.mNetType;
             this.mNetType = netType;
+            version = ++postedVersion;
         }
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
+                if (version > deliveredVersion) {
+                    deliveredVersion = version;
+                }
                 NetTypeListener listener = netTypeListener;
                 if (listener != null) {
                     listener.onNetTypeChanged(netType);
@@ -179,12 +198,13 @@ public class NetStatusReceiver {
         if (listener == null) {
             return;
         }
+        final Snapshot snapshot = snapshot();
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
-                // 期间若已被替换，则不再回调旧监听
-                if (netTypeListener == listener) {
-                    listener.onNetTypeChanged(mNetType);
+                // 期间若已被替换，则不再回调旧监听；已分发过更新的变化时不再回调旧值
+                if (netTypeListener == listener && !snapshot.isStale()) {
+                    listener.onNetTypeChanged(snapshot.netType);
                 }
             }
         });
@@ -200,13 +220,13 @@ public class NetStatusReceiver {
         if (!listeners.addIfAbsent(listener)) {
             return;
         }
-        final NetType current = mNetType;
+        final Snapshot snapshot = snapshot();
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
-                // 期间若已被移除，则不再回调
-                if (listeners.contains(listener)) {
-                    invokeListener(listener, current);
+                // 期间若已被移除，则不再回调；已分发过更新的变化时不再回调旧值
+                if (listeners.contains(listener) && !snapshot.isStale()) {
+                    invokeListener(listener, snapshot.netType);
                 }
             }
         });
@@ -234,13 +254,37 @@ public class NetStatusReceiver {
     }
 
     /**
-     * 设置初始网络类型（不分发）
+     * 初始回调使用的“当前网络类型 + 版本号”快照。
      */
+    private final class Snapshot {
+        final NetType netType;
+        final long version;
+
+        Snapshot(NetType netType, long version) {
+            this.netType = netType;
+            this.version = version;
+        }
+
+        /** 快照之后又有变化已经分发（订阅者已收到更新的值），此快照不应再回调 */
+        boolean isStale() {
+            return deliveredVersion > version;
+        }
+    }
+
+    private Snapshot snapshot() {
+        synchronized (this) {
+            return new Snapshot(mNetType, postedVersion);
+        }
+    }
+
     /** 当前记录的网络类型（只读缓存） */
     NetType getCurrentNetType() {
         return mNetType;
     }
 
+    /**
+     * 设置初始网络类型（不分发）
+     */
     void setInitialNetType(NetType netType) {
         this.mNetType = netType;
     }
@@ -341,12 +385,14 @@ public class NetStatusReceiver {
                 networkList.add(holder);
             }
         }
-        // 注册后立即回调一次当前网络状态
-        final NetType current = mNetType;
+        // 注册后立即回调一次当前网络状态（已分发过更新的变化时跳过旧值）
+        final Snapshot snapshot = snapshot();
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
-                executeInvoke(mContext, holder, current);
+                if (!snapshot.isStale()) {
+                    executeInvoke(mContext, holder, snapshot.netType);
+                }
             }
         });
     }
