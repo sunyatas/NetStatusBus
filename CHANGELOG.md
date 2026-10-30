@@ -6,6 +6,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-30
+
 ### Added
 
 - `NetStatusBus.addListener(OnNetTypeChangeListener)` / `removeListener(...)`: an annotation-free, reflection-free callback for Java and Kotlin. It receives the current type right away and then every change on the main thread, including while the UI is in the background (unlike `LiveData`). `addListener(listener, LifecycleOwner)` removes it automatically on `DESTROYED`. A listener that throws is logged and does not affect other listeners or subscribers.
@@ -79,5 +81,6 @@ First release published through JitPack:
   parameter or a non-void return type were already rejected.
 - Callbacks always arrive on the main thread.
 
-[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.0.0...master
+[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.0...master
+[1.1.0]: https://github.com/sunyatas/NetStatusBus/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sunyatas/NetStatusBus/compare/6aaadb4...v1.0.0

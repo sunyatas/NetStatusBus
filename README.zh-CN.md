@@ -46,11 +46,11 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-    implementation 'com.github.sunyatas:NetStatusBus:1.0.0'
+    implementation 'com.github.sunyatas:NetStatusBus:1.1.0'
 }
 ```
 
-> `1.0.0` 是目前最新的正式版本（见 [Releases](https://github.com/sunyatas/NetStatusBus/releases) 和[更新日志](CHANGELOG.md)）。如果想提前使用尚未发布的改动，可以用 `master-SNAPSHOT`（跟随 `master` 最新代码），或者换成某个提交的短哈希，例如 `com.github.sunyatas:NetStatusBus:329c932`。
+> `1.1.0` 是目前最新的正式版本（见 [Releases](https://github.com/sunyatas/NetStatusBus/releases) 和[更新日志](CHANGELOG.md)）。如果想提前使用尚未发布的改动，可以用 `master-SNAPSHOT`（跟随 `master` 最新代码），或者换成某个提交的短哈希，例如 `com.github.sunyatas:NetStatusBus:329c932`。
 
 ### 方式二：从源码构建
 
@@ -70,7 +70,7 @@ dependencies {
 }
 ```
 
-也可以在本仓库中执行 `./gradlew :netbuslib:publishToMavenLocal`，再通过 `mavenLocal()` 依赖 `com.github.sunyatas:netstatusbus:1.0.0`。
+也可以在本仓库中执行 `./gradlew :netbuslib:publishToMavenLocal`，再通过 `mavenLocal()` 依赖 `com.github.sunyatas:netstatusbus:1.1.0`。
 
 ## 使用方法
 
@@ -292,7 +292,7 @@ NetworkUtils.openSetting(activity, REQUEST_WIFI);    // 同上，返回时回调
 
 ## 更新日志
 
-自 2019 年 Bintray 版本以来的变化以及 1.0.0 将包含的内容，见 [CHANGELOG.md](CHANGELOG.md)（英文）。
+自 2019 年 Bintray 版本以来每个版本的变化，见 [CHANGELOG.md](CHANGELOG.md)（英文）。
 
 ## 许可证
 

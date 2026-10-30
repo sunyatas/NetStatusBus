@@ -42,7 +42,7 @@ dependencies {
 }
 
 // Library version. JitPack passes -Pversion=<tag or commit>, which takes precedence.
-def libraryVersion = '1.0.0'
+def libraryVersion = '1.1.0'
 
 // JitPack (https://jitpack.io) builds this publication via publishToMavenLocal
 afterEvaluate {
