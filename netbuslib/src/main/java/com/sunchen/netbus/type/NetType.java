@@ -1,20 +1,21 @@
 package com.sunchen.netbus.type;
 
 /**
- * Created by 「孙晨」 on 2019/3/31 0031   18:53.
+ * The kind of network the device is currently using, as reported by
+ * {@link com.sunchen.netbus.NetStatusBus} and {@link com.sunchen.netbus.utils.NetworkUtils}.
  * <p>
- * God bless me only
+ * Only the system's default network counts. A VPN is reported as the type of the network
+ * underneath it; use {@code NetworkUtils.isVpnActive()} to tell whether a VPN is up.
  * <p>
- * NetType
+ * 当前使用的网络类型。只看系统默认网络；VPN 按其底层网络的类型上报。
  */
-
 public enum NetType {
-    //wifi网络
+    /** Wi-Fi. 无线局域网。 */
     WIFI,
-    //移动网络
+    /** Cellular data (2G/3G/4G/5G). 移动网络。 */
     MOBILE,
-    //有线网络（以太网）
+    /** Wired Ethernet. 有线网络（以太网）。 */
     ETHERNET,
-    //没有任何网络
+    /** No network at all. 没有任何网络。 */
     NONE
 }

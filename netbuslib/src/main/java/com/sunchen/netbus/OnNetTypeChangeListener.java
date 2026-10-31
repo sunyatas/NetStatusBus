@@ -17,6 +17,11 @@ import com.sunchen.netbus.type.NetType;
  */
 public interface OnNetTypeChangeListener {
 
+    /**
+     * Called on the main thread with the current network type.
+     *
+     * @param netType the type the bus just delivered; never {@code null}
+     */
     @MainThread
     void onNetTypeChanged(@NonNull NetType netType);
 }
