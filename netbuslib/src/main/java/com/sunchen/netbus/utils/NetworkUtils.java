@@ -23,32 +23,61 @@ import com.sunchen.netbus.type.MobileGeneration;
 import com.sunchen.netbus.type.NetType;
 
 /**
- * Created by 「孙晨」 on 2019/3/31 0031   19:04.
+ * One-shot network queries and a shortcut to the system Wi-Fi settings.
  * <p>
- * God bless me only
+ * The no-argument methods use the {@link android.app.Application} passed to
+ * {@link NetStatusBus#init(android.app.Application)} and throw {@link IllegalStateException}
+ * if it has not been called yet. The {@link Context} overloads work without {@code init}
+ * (for example in a {@code BroadcastReceiver}, a WorkManager worker, or another library)
+ * and only keep the application context. All methods are safe to call from any thread.
  * <p>
- * NetworkUtils
+ * To be notified of changes instead of polling, use {@link NetStatusBus#register(Object)}
+ * or {@link NetStatusBus#addListener(com.sunchen.netbus.OnNetTypeChangeListener)}.
+ * <p>
+ * 一次性的网络状态查询工具，以及打开系统 Wi-Fi 设置页的快捷方法。
+ * 无参方法依赖 {@code init}；带 {@link Context} 参数的重载不需要 {@code init}。
+ *
+ * <pre>{@code
+ * if (NetworkUtils.getNetType(context) == NetType.WIFI) {
+ *     startLargeDownload();
+ * }
+ * }</pre>
  */
 @SuppressLint("MissingPermission")
 public class NetworkUtils {
 
     /**
+     * Returns whether the device currently has a network that offers internet access.
+     * <p>
+     * On Android 6.0+ this checks the active network for
+     * {@link NetworkCapabilities#NET_CAPABILITY_INTERNET}. It deliberately does not require
+     * {@link NetworkCapabilities#NET_CAPABILITY_VALIDATED}, so captive-portal and LAN-only
+     * Wi-Fi still count as connected. Older versions fall back to {@link NetworkInfo}.
+     * <p>
      * 网络是否可用。
      * Android 6.0+ 使用当前活跃网络的 {@link NetworkCapabilities}：
      * 要求 {@link NetworkCapabilities#NET_CAPABILITY_INTERNET}，
      * 但不要求 {@link NetworkCapabilities#NET_CAPABILITY_VALIDATED}，
      * 以便仅能访问局域网 / 强制门户的 Wi-Fi 仍被视为已连接。
+     *
+     * @return {@code true} if a usable network is connected
+     * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static boolean isNetworkAvailable() {
         return isNetworkAvailable(NetStatusBus.getInstance().getApplication());
     }
 
     /**
+     * Same as {@link #isNetworkAvailable()}, but uses the given {@link Context} and does not
+     * need {@code init}. Only the application context is used.
+     * <p>
      * 同 {@link #isNetworkAvailable()}，但使用传入的 {@link Context}，
      * 不需要先调用 {@code NetStatusBus.getInstance().init(...)}
      * （例如在 BroadcastReceiver、WorkManager 任务或其他库中使用）。
      *
-     * @throws IllegalArgumentException context 为 null 时
+     * @param context any context; must not be {@code null}
+     * @return {@code true} if a usable network is connected
+     * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager = connectivityManager(context);
@@ -101,24 +130,44 @@ public class NetworkUtils {
     }
 
     /**
+     * Returns the type of the current default network: {@link NetType#WIFI},
+     * {@link NetType#MOBILE}, {@link NetType#ETHERNET}, or {@link NetType#NONE}.
+     * A VPN reports the type of the network underneath it.
+     * <p>
+     * This queries the system each time. To read the value the bus last delivered without a
+     * system call, use {@link NetStatusBus#getCurrentNetType()}.
+     * <p>
      * 获取当前的网络类型
+     *
+     * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static NetType getNetType() {
         return getNetType((Network) null);
     }
 
     /**
+     * Same as {@link #getNetType()}, but treats {@code lostNetwork} as already disconnected.
+     * Useful inside {@code ConnectivityManager.NetworkCallback.onLost}, where the system may
+     * still report the lost network as active for a moment.
+     * <p>
      * 获取当前的网络类型，忽略已经断开的 lostNetwork。
      * Android 6.0+ 使用 NetworkCapabilities 判断，旧系统回退到 NetworkInfo。
+     *
+     * @param lostNetwork a network to ignore, or {@code null}
+     * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static NetType getNetType(Network lostNetwork) {
         return getNetType(NetStatusBus.getInstance().getApplication(), lostNetwork);
     }
 
     /**
+     * Same as {@link #getNetType()}, but uses the given {@link Context} and does not need
+     * {@code init}. Only the application context is used.
+     * <p>
      * 同 {@link #getNetType()}，但使用传入的 {@link Context}，不需要先调用 init。
      *
-     * @throws IllegalArgumentException context 为 null 时
+     * @param context any context; must not be {@code null}
+     * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static NetType getNetType(Context context) {
         return getNetType(context, null);
@@ -220,16 +269,24 @@ public class NetworkUtils {
     }
 
     /**
+     * Returns whether any VPN is currently connected. Always {@code false} below Android 6.0.
+     * <p>
      * 当前是否有 VPN 处于连接状态（Android 6.0+，旧系统返回 false）。
+     *
+     * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static boolean isVpnActive() {
         return isVpnActive(NetStatusBus.getInstance().getApplication());
     }
 
     /**
+     * Same as {@link #isVpnActive()}, but uses the given {@link Context} and does not need
+     * {@code init}.
+     * <p>
      * 同 {@link #isVpnActive()}，但使用传入的 {@link Context}，不需要先调用 init。
      *
-     * @throws IllegalArgumentException context 为 null 时
+     * @param context any context; must not be {@code null}
+     * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static boolean isVpnActive(Context context) {
         ConnectivityManager cm = connectivityManager(context);
@@ -249,19 +306,31 @@ public class NetworkUtils {
     }
 
     /**
+     * Returns the generation (2G to 5G) of the current mobile data network. This is opt-in:
+     * it only works when the current type is {@link NetType#MOBILE} and the host app holds
+     * {@code READ_PHONE_STATE}; otherwise it returns {@link MobileGeneration#UNKNOWN} and
+     * never throws a {@link SecurityException}. 5G NSA (non-standalone) is usually reported by
+     * the system as LTE, so it returns {@link MobileGeneration#G4}.
+     * <p>
      * 当前移动网络制式（2G/3G/4G/5G），opt-in 功能。
      * 只有当前网络是 MOBILE 且宿主 App 已获得 READ_PHONE_STATE 权限时才能判断，
      * 否则返回 {@link MobileGeneration#UNKNOWN}，不会抛出异常。
      * 注意：5G NSA（非独立组网）在系统层面通常报告为 LTE，因此会返回 G4。
+     *
+     * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static MobileGeneration getMobileGeneration() {
         return getMobileGeneration(NetStatusBus.getInstance().getApplication());
     }
 
     /**
+     * Same as {@link #getMobileGeneration()}, but uses the given {@link Context} and does not
+     * need {@code init}.
+     * <p>
      * 同 {@link #getMobileGeneration()}，但使用传入的 {@link Context}，不需要先调用 init。
      *
-     * @throws IllegalArgumentException context 为 null 时
+     * @param context any context; must not be {@code null}
+     * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static MobileGeneration getMobileGeneration(Context context) {
         context = appContext(context);
@@ -320,6 +389,10 @@ public class NetworkUtils {
     }
 
     /**
+     * Opens the system Wi-Fi settings screen without asking for a result. Any {@link Context}
+     * works; {@link Intent#FLAG_ACTIVITY_NEW_TASK} is added when it is not an Activity.
+     * Does nothing if {@code context} is {@code null}.
+     * <p>
      * 打开系统 Wi-Fi 设置界面，不关心返回结果。
      * 可以传入任意 {@link Context}；非 Activity 时会自动加上 {@link Intent#FLAG_ACTIVITY_NEW_TASK}。
      */
@@ -328,6 +401,17 @@ public class NetworkUtils {
     }
 
     /**
+     * Opens the system Wi-Fi settings screen.
+     * <p>
+     * If {@code context} is (or wraps) an {@link Activity} and {@code requestCode >= 0}, the
+     * screen is started with {@link Activity#startActivityForResult(Intent, int)} so the host's
+     * {@code onActivityResult} is called on return. The settings screen usually returns
+     * {@code RESULT_CANCELED}, so call {@link #getNetType()} again there to read the new state.
+     * Otherwise {@link Context#startActivity(Intent)} is used, adding
+     * {@link Intent#FLAG_ACTIVITY_NEW_TASK} for non-Activity contexts, so passing the
+     * Application is safe. If the device has no Wi-Fi settings screen, the main settings
+     * screen is opened instead. Does nothing if {@code context} is {@code null}.
+     * <p>
      * 打开系统 Wi-Fi 设置界面。
      * <p>
      * 当 {@code context} 是（或包装了）{@link Activity} 且 {@code requestCode >= 0} 时，
@@ -338,7 +422,9 @@ public class NetworkUtils {
      * {@link Intent#FLAG_ACTIVITY_NEW_TASK}，传入 Application 也不会崩溃。
      * 如果设备上没有 Wi-Fi 设置页，退回到系统设置首页。
      *
-     * @param requestCode 传负数表示不需要返回结果
+     * @param context     an Activity, or any other context
+     * @param requestCode request code for {@code onActivityResult}; pass a negative value when
+     *                    no result is needed
      */
     public static void openSetting(Context context, int requestCode) {
         if (context == null) {

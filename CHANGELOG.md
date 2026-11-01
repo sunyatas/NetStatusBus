@@ -8,7 +8,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ### Documentation
 
-- English Javadoc for the whole public API surface users touch first: `NetStatusBus` (class overview, `init`, `register`, `unregister`, `getNetTypeLiveData`, ...), `@NetSubscribe` (signature rules, superclass lookup, threading, example), `OnNetTypeChangeListener`, `NetType`, `Mode` and `MobileGeneration`. Chinese text is kept next to it. IDEs show it from the published sources jar.
+- English Javadoc for the whole public API surface users touch first: `NetStatusBus` (class overview, `init`, `register`, `unregister`, `getNetTypeLiveData`, ...), `@NetSubscribe` (signature rules, superclass lookup, threading, example), `OnNetTypeChangeListener`, `NetType`, `Mode`, `MobileGeneration` and `NetworkUtils` (every query, the `Context` overloads that work without `init`, and `openSetting`). Chinese text is kept next to it. IDEs show it from the published sources jar.
 
 ## [1.1.0] - 2026-10-30
 
