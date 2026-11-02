@@ -232,7 +232,7 @@ The [`app`](app) module shows every style side by side:
 | `Mode.MOBILE_CONNECT` | The network becomes mobile data |
 | `Mode.NONE` | The network is lost |
 
-`Mode.WIFI` and `Mode.MOBILE` only react to their own network. For example, losing mobile data does not notify `Mode.WIFI` subscribers, and switching from Wi-Fi to mobile data notifies both (`Mode.WIFI` receives `MOBILE` because Wi-Fi went away).
+`Mode.WIFI` and `Mode.MOBILE` only react to their own network. For example, losing mobile data does not notify `Mode.WIFI` subscribers, and switching from Wi-Fi to mobile data notifies both (`Mode.WIFI` receives `MOBILE` because Wi-Fi went away). There is no Ethernet-specific mode: use `Mode.AUTO` and check for `NetType.ETHERNET`.
 
 > Behavior change: earlier versions also notified `Mode.WIFI` / `Mode.MOBILE` subscribers whenever the network became `NONE`, no matter which network was lost.
 

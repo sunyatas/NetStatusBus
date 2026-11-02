@@ -232,7 +232,7 @@ NetStatusBus.getInstance().addListener({ netType ->
 | `Mode.MOBILE_CONNECT` | 网络变为移动网络 |
 | `Mode.NONE` | 网络断开 |
 
-`Mode.WIFI` 和 `Mode.MOBILE` 只响应各自对应的网络。例如移动网络断开不会通知 `Mode.WIFI` 订阅者；从 Wi-Fi 切换到移动网络时两者都会被通知（`Mode.WIFI` 收到 `MOBILE`，表示 Wi-Fi 已断开）。
+`Mode.WIFI` 和 `Mode.MOBILE` 只响应各自对应的网络。例如移动网络断开不会通知 `Mode.WIFI` 订阅者；从 Wi-Fi 切换到移动网络时两者都会被通知（`Mode.WIFI` 收到 `MOBILE`，表示 Wi-Fi 已断开）。没有专门针对有线网络的模式：请使用 `Mode.AUTO` 并判断是否为 `NetType.ETHERNET`。
 
 > 行为变更：旧版本中，只要网络变为 `NONE`，无论断开的是哪种网络，`Mode.WIFI` / `Mode.MOBILE` 订阅者都会被回调。
 

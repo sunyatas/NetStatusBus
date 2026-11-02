@@ -10,6 +10,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - English Javadoc for the whole public API surface users touch first: `NetStatusBus` (class overview, `init`, `register`, `unregister`, `getNetTypeLiveData`, ...), `@NetSubscribe` (signature rules, superclass lookup, threading, example), `OnNetTypeChangeListener`, `NetType`, `Mode`, `MobileGeneration` and `NetworkUtils` (every query, the `Context` overloads that work without `init`, and `openSetting`). Chinese text is kept next to it. IDEs show it from the published sources jar.
 
+### Tests
+
+- `ModeMatrixTest` checks every `Mode` against every network transition (Wi-Fi, mobile, Ethernet, none) and against the initial callback on `register`, so the documented mode table cannot drift silently.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added
