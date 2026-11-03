@@ -46,7 +46,7 @@ jobs:
       - name: Verify @NetSubscribe methods survived R8
         run: |
           mapping=app/build/outputs/mapping/release/mapping.txt
-          for m in onWifiConnected onMobileConnected onDisconnected netChange; do
+          for m in onWifiConnected onMobileConnected onDisconnected onNetTypeChanged netChange; do
             grep -Eq "void $m\((com\.sunchen\.netbus\.type\.NetType)?\)(:[0-9]+)* -> $m$" "$mapping" \
               || { echo "::error::$m was renamed or removed by R8"; exit 1; }
           done

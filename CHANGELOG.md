@@ -14,6 +14,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - `ModeMatrixTest` checks every `Mode` against every network transition (Wi-Fi, mobile, Ethernet, none) and against the initial callback on `register`, so the documented mode table cannot drift silently.
 
+### Sample app
+
+- `MainActivity` now shows `NetworkUtils` in use: a details line with the current type, internet availability, VPN and mobile generation, and an "Open Wi-Fi settings" button that uses `openSetting(this, requestCode)` and refreshes the details in `onActivityResult`. A `Mode.AUTO` subscriber handles Ethernet, which the mode-filtered methods could not show. The button that opens the Fragment demo is now called `btn_to_fragment` instead of the misleading `btn_to_setting`.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added

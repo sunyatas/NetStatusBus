@@ -215,7 +215,7 @@ NetStatusBus.getInstance().addListener({ netType ->
 
 [`app`](app) 模块把几种用法放在一起演示：
 
-- `MainActivity`（继承 `BaseActivity`）：按 `Mode` 过滤的 `@NetSubscribe` 方法，在 `onStart` 注册、`onStop` 注销。
+- `MainActivity`（继承 `BaseActivity`）：按 `Mode` 过滤的 `@NetSubscribe` 方法，在 `onStart` 注册、`onStop` 注销，另有一个 `Mode.AUTO` 方法处理以太网。页面还演示了 `NetworkUtils` 的即时查询（是否可上网、VPN、移动网络制式），以及「打开 Wi-Fi 设置」按钮：调用 `openSetting(this, requestCode)`，返回后在 `onActivityResult` 里重新读取状态。
 - `BlankFragment`：接收 `NetType` 参数的 `@NetSubscribe` 方法，用 `register(this, getViewLifecycleOwner())` 注册，自动注销。
 - `Main2Activity`：用 `addListener(listener, this)` 在标题栏副标题显示当前网络，用 `getNetTypeLiveData()` 打印每次变化，都不需要注解。
 

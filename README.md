@@ -215,7 +215,7 @@ Adding the same listener instance twice has no effect, and `unregisterAllObserve
 
 The [`app`](app) module shows every style side by side:
 
-- `MainActivity` (via `BaseActivity`): `@NetSubscribe` methods filtered by `Mode`, registered in `onStart` and unregistered in `onStop`.
+- `MainActivity` (via `BaseActivity`): `@NetSubscribe` methods filtered by `Mode`, registered in `onStart` and unregistered in `onStop`, plus a `Mode.AUTO` method that handles Ethernet. It also shows `NetworkUtils` queries (internet available, VPN, mobile generation) and an "Open Wi-Fi settings" button that calls `openSetting(this, requestCode)` and re-reads the state in `onActivityResult`.
 - `BlankFragment`: a `@NetSubscribe(NetType)` method registered with `register(this, getViewLifecycleOwner())`, so it unregisters itself.
 - `Main2Activity`: `addListener(listener, this)` shows the current network in the action bar subtitle, and `getNetTypeLiveData()` logs each change; neither needs annotations.
 

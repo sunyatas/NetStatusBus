@@ -28,9 +28,25 @@
         android:layout_marginTop="20dp"
         android:text="现在尝试手动改变一下你的网络状态" />
 
+    <TextView
+        android:id="@+id/tv_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:textSize="14sp" />
 
     <Button
-        android:id="@+id/btn_to_setting"
+        android:id="@+id/btn_open_wifi_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="打开 Wi-Fi 设置" />
+
+
+    <Button
+        android:id="@+id/btn_to_fragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
