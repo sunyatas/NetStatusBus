@@ -6,6 +6,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+### Fixed
+
+- When a VPN does not declare its underlying transport (mostly Android 6.0 to 8.1) and both Wi-Fi and always-on mobile data are connected, the type under the VPN depended on the order the system listed networks, so it could be reported as `MOBILE` while the device was on Wi-Fi. It is now chosen with the same priority as everywhere else (Wi-Fi, then mobile, then Ethernet).
+
 ### Documentation
 
 - English Javadoc for the whole public API surface users touch first: `NetStatusBus` (class overview, `init`, `register`, `unregister`, `getNetTypeLiveData`, ...), `@NetSubscribe` (signature rules, superclass lookup, threading, example), `OnNetTypeChangeListener`, `NetType`, `Mode`, `MobileGeneration` and `NetworkUtils` (every query, the `Context` overloads that work without `init`, and `openSetting`). Chinese text is kept next to it. IDEs show it from the published sources jar.
@@ -13,6 +17,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 ### Tests
 
 - `ModeMatrixTest` checks every `Mode` against every network transition (Wi-Fi, mobile, Ethernet, none) and against the initial callback on `register`, so the documented mode table cannot drift silently.
+- `VpnUnderlyingTypeTest` covers how the type under a VPN is picked, and `NetworkUtilsTest` now checks every `TelephonyManager.NETWORK_TYPE_*` value (0 to 20) against its 2G/3G/4G/5G generation.
 
 ### Sample app
 

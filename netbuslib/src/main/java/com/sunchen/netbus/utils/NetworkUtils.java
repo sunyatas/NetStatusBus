@@ -249,23 +249,63 @@ public class NetworkUtils {
 
     @android.annotation.TargetApi(Build.VERSION_CODES.M)
     private static NetType underlyingType(ConnectivityManager cm, Network lostNetwork) {
+        java.util.List<Transports> networks = new java.util.ArrayList<>();
         for (Network network : cm.getAllNetworks()) {
             if (network.equals(lostNetwork)) {
                 continue;
             }
             NetworkCapabilities caps = cm.getNetworkCapabilities(network);
-            if (caps == null || caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-                    || !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+            if (caps == null) {
                 continue;
             }
-            NetType type = fromTransports(caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
+            networks.add(new Transports(
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN),
+                    caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
                     caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR),
-                    caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
-            if (type != NetType.NONE) {
-                return type;
-            }
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)));
         }
-        return NetType.NONE;
+        return underlyingTypeOf(networks);
+    }
+
+    /**
+     * 从所有网络中选出 VPN 底层网络的类型：跳过 VPN 和没有 INTERNET 能力的网络，
+     * 在剩下的网络中按 WIFI &gt; MOBILE &gt; ETHERNET 选择，与 {@link #fromTransports} 的优先级一致。
+     * 不依赖系统返回网络的顺序（Wi-Fi 上开 VPN、同时保持移动数据常开时，
+     * 以前可能因为顺序不同被报告为 MOBILE）。
+     */
+    static NetType underlyingTypeOf(Iterable<Transports> networks) {
+        boolean wifi = false;
+        boolean cellular = false;
+        boolean ethernet = false;
+        for (Transports t : networks) {
+            if (t.vpn || !t.internet) {
+                continue;
+            }
+            wifi |= t.wifi;
+            cellular |= t.cellular;
+            ethernet |= t.ethernet;
+        }
+        return fromTransports(wifi, cellular, ethernet);
+    }
+
+    /**
+     * 某个网络的传输类型和 INTERNET 能力快照，便于在纯 JVM 单元测试中验证选择逻辑。
+     */
+    static final class Transports {
+        final boolean vpn;
+        final boolean internet;
+        final boolean wifi;
+        final boolean cellular;
+        final boolean ethernet;
+
+        Transports(boolean vpn, boolean internet, boolean wifi, boolean cellular, boolean ethernet) {
+            this.vpn = vpn;
+            this.internet = internet;
+            this.wifi = wifi;
+            this.cellular = cellular;
+            this.ethernet = ethernet;
+        }
     }
 
     /**
