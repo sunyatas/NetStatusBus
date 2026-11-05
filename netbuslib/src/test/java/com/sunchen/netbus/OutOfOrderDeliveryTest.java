@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -114,7 +115,9 @@ public class OutOfOrderDeliveryTest {
 
         assertEquals(Arrays.asList(NetType.NONE), recorder.values);
         assertEquals(Arrays.asList(NetType.NONE), liveDataValues);
-        assertEquals(Arrays.asList("AUTO:NONE", "WIFI:NONE"), subscriber.calls);
+        // 同一订阅者内多个方法的回调顺序取决于反射返回的顺序，这里只比较集合
+        assertEquals(new HashSet<>(Arrays.asList("AUTO:NONE", "WIFI:NONE")), new HashSet<>(subscriber.calls));
+        assertEquals(2, subscriber.calls.size());
         assertEquals(NetType.NONE, receiver.getCurrentNetType());
     }
 
