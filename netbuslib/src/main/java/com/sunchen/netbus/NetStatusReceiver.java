@@ -136,26 +136,56 @@ public class NetStatusReceiver {
 
     NetStatusReceiver(Dispatcher dispatcher) {
         this.mNetType = NetType.NONE;
+        this.deliveredType = NetType.NONE;
         this.dispatcher = dispatcher;
     }
+
+    /**
+     * 最近一次真正分发给订阅者的网络类型，只在 dispatcher 线程（默认主线程）读写。
+     * 用作模式过滤里的“变化前类型”，并给 {@link #postIfChanged} 的分发去重。
+     */
+    private volatile NetType deliveredType;
 
     /**
      * 分发（可在任意线程调用，订阅方法会切换到主线程执行）
      */
     protected void post(final NetType netType) {
-        final NetType previous;
+        postInternal(netType, false);
+    }
+
+    /**
+     * 仅当网络类型发生变化时才分发，避免系统多次回调造成重复通知。
+     * <p>
+     * “比较 + 更新”在同一把锁内完成，两个线程同时上报同一个新类型时只会分发一次。
+     */
+    protected void postIfChanged(NetType netType) {
+        postInternal(netType, true);
+    }
+
+    private void postInternal(final NetType netType, final boolean onlyIfChanged) {
         final long version;
         synchronized (this) {
-            previous = this.mNetType;
+            if (onlyIfChanged && netType == mNetType) {
+                return;
+            }
             this.mNetType = netType;
             version = ++postedVersion;
         }
+        // 入队在锁外进行：另一个线程可能在这里插队，导致较新的变化先于较旧的变化分发
         dispatcher.dispatch(new Runnable() {
             @Override
             public void run() {
-                if (version > deliveredVersion) {
-                    deliveredVersion = version;
+                if (version < deliveredVersion) {
+                    // 更新的变化已经分发过：丢弃这个过期的旧值，否则订阅者会停留在旧类型上
+                    return;
                 }
+                deliveredVersion = version;
+                final NetType previous = deliveredType;
+                if (onlyIfChanged && netType == previous) {
+                    // 中间的变化被丢弃后，这次的值可能和订阅者已收到的相同，不再重复回调
+                    return;
+                }
+                deliveredType = netType;
                 NetTypeListener listener = netTypeListener;
                 if (listener != null) {
                     listener.onNetTypeChanged(netType);
@@ -176,18 +206,6 @@ public class NetStatusReceiver {
                 }
             }
         });
-    }
-
-    /**
-     * 仅当网络类型发生变化时才分发，避免系统多次回调造成重复通知
-     */
-    protected void postIfChanged(NetType netType) {
-        synchronized (this) {
-            if (netType == mNetType) {
-                return;
-            }
-        }
-        post(netType);
     }
 
     /**
@@ -287,6 +305,7 @@ public class NetStatusReceiver {
      */
     void setInitialNetType(NetType netType) {
         this.mNetType = netType;
+        this.deliveredType = netType;
     }
 
     private void executeInvoke(Object subscriber, ObserverHolder holder, NetType netType) {

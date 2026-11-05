@@ -9,6 +9,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 ### Fixed
 
 - When a VPN does not declare its underlying transport (mostly Android 6.0 to 8.1) and both Wi-Fi and always-on mobile data are connected, the type under the VPN depended on the order the system listed networks, so it could be reported as `MOBILE` while the device was on Wi-Fi. It is now chosen with the same priority as everywhere else (Wi-Fi, then mobile, then Ethernet).
+- If two network callbacks reported changes at almost the same moment, the newer change could reach the main thread first and the older one second, so subscribers, listeners and `getNetTypeLiveData()` ended up on an outdated type while `getCurrentNetType()` already had the new one. An older change that arrives after a newer one is now dropped. The "only if changed" check and the update are also done in one step, so the same new type reported twice at once is delivered once, and the `WIFI`/`MOBILE` mode filters compare against the type subscribers actually received last.
 
 ### Documentation
 
@@ -16,6 +17,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ### Tests
 
+- `OutOfOrderDeliveryTest` reproduces a newer change being queued before an older one and checks that nobody is left on the older type or gets the same type twice.
 - `ModeMatrixTest` checks every `Mode` against every network transition (Wi-Fi, mobile, Ethernet, none) and against the initial callback on `register`, so the documented mode table cannot drift silently.
 - `VpnUnderlyingTypeTest` covers how the type under a VPN is picked, and `NetworkUtilsTest` now checks every `TelephonyManager.NETWORK_TYPE_*` value (0 to 20) against its 2G/3G/4G/5G generation.
 
