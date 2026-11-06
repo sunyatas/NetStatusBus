@@ -9,16 +9,20 @@ import androidx.annotation.RequiresApi;
 import com.sunchen.netbus.utils.NetworkUtils;
 
 /**
+ * Lollipop–Marshmallow {@link ConnectivityManager.NetworkCallback} used before
+ * {@link ConnectivityManager#registerDefaultNetworkCallback} exists (Android 7.0+).
+ * Internal implementation detail; not part of the supported public API.
+ * <p>
  * 网络回调。每次回调都重新计算当前默认网络的类型，交给 {@link NetStatusReceiver} 去重后分发。
  * <p>
  * onLost 时系统的 activeNetwork 可能仍指向刚断开的网络，因此需要把断开的网络排除掉，
  * 否则断开 WIFI 后仍会得到 WIFI（#6 #9）。
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
+final class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
     private final NetStatusReceiver mReceiver;
 
-    public NetworkCallbackImpl(NetStatusReceiver receiver) {
+    NetworkCallbackImpl(NetStatusReceiver receiver) {
         mReceiver = receiver;
     }
 

@@ -87,6 +87,28 @@ public class NetStatusReceiverTest {
         }
     }
 
+    /** Parent method that a child will override with the same signature. */
+    public static class OverrideParent {
+        final List<String> calls = new ArrayList<>();
+
+        @NetSubscribe
+        public void onNet(NetType type) {
+            calls.add("PARENT:" + type);
+        }
+    }
+
+    /**
+     * Child overrides the parent's {@code onNet(NetType)} and also declares {@code @NetSubscribe}.
+     * {@code findAnnotationMethods} must keep only the child's method (dedupe by signature).
+     */
+    public static class OverrideChild extends OverrideParent {
+        @Override
+        @NetSubscribe
+        public void onNet(NetType type) {
+            calls.add("CHILD:" + type);
+        }
+    }
+
     private RecordingDispatcher dispatcher;
     private NetStatusReceiver receiver;
 
@@ -296,6 +318,25 @@ public class NetStatusReceiverTest {
         receiver.post(NetType.WIFI);
         assertTrue(child.baseCalls.contains("BASE:WIFI"));
         assertTrue(child.childCalls.contains("CHILD_WIFI"));
+    }
+
+    @Test
+    public void overridingSameSignatureKeepsOnlyChildMethod() {
+        List<MethodManager> methods =
+                NetStatusReceiver.findAnnotationMethods(OverrideChild.class);
+        assertEquals(1, methods.size());
+        assertEquals(OverrideChild.class, methods.get(0).getMethod().getDeclaringClass());
+
+        OverrideChild child = new OverrideChild();
+        receiver.registerObserver(child);
+        // Initial delivery for AUTO + current NONE
+        assertEquals(1, child.calls.size());
+        assertEquals("CHILD:NONE", child.calls.get(0));
+        child.calls.clear();
+
+        receiver.post(NetType.WIFI);
+        assertEquals(1, child.calls.size());
+        assertEquals("CHILD:WIFI", child.calls.get(0));
     }
 
     @Test

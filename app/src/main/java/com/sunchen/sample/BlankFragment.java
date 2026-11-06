@@ -16,9 +16,10 @@ import androidx.core.content.ContextCompat;
 import com.sunchen.netbus.NetStatusBus;
 import com.sunchen.netbus.annotation.NetSubscribe;
 import com.sunchen.netbus.type.NetType;
-import com.sunchen.netbus.utils.Constrants;
 
 public class BlankFragment extends Fragment {
+    private static final String TAG = "NetStatusBusSample";
+
     private TextView tvTips;
     private ImageView imgNetStatus;
 
@@ -48,7 +49,7 @@ public class BlankFragment extends Fragment {
 
     @NetSubscribe()
     public void netChange(NetType netType) {
-        Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<BlankFragment");
+        Log.d(TAG, netType.name() + "<<<<<<<<<<BlankFragment");
         switch (netType) {
             case NONE:
                 tvTips.setText("网络连接中断...");

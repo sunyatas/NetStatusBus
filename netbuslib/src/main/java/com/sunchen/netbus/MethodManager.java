@@ -1,56 +1,41 @@
 package com.sunchen.netbus;
 
-/**
- * Created by 「孙晨」 on 2019/4/2   22:28.
- * <p>
- * God bless me only
- * <p>
- * MethodManager
- */
 import com.sunchen.netbus.type.Mode;
+
 import java.lang.reflect.Method;
 
 /**
- * 保存符合要求的网络监听注解方法
+ * Holds one validated {@code @NetSubscribe} method: its parameter type, {@link Mode}, and
+ * reflective {@link Method}.
+ * <p>
+ * Internal to the library; not part of the supported public API.
+ * <p>
+ * 保存一份已校验的 {@code @NetSubscribe} 方法（参数类型、订阅模式、反射 Method）。库内部使用，非公开 API。
  */
-public class MethodManager {
+final class MethodManager {
 
-    //参数类型
-    private Class<?> parameterClazz;
+    /** Parameter type of the subscribe method; {@code null} when the method takes no args. */
+    private final Class<?> parameterClazz;
 
-    //订阅类型
-    private Mode mode;
+    private final Mode mode;
 
-    //需要执行的方法
-    private Method method;
+    private final Method method;
 
-    public MethodManager(Class<?> clazz, Mode mode, Method method) {
+    MethodManager(Class<?> clazz, Mode mode, Method method) {
         this.parameterClazz = clazz;
         this.mode = mode;
         this.method = method;
     }
 
-    public Class<?> getParameterClazz() {
+    Class<?> getParameterClazz() {
         return parameterClazz;
     }
 
-    public void setParameterClazz(Class<?> parameterClazz) {
-        this.parameterClazz = parameterClazz;
-    }
-
-    public Mode getMode() {
+    Mode getMode() {
         return mode;
     }
 
-    public void setMode(Mode mode) {
-        this.mode = mode;
-    }
-
-    public Method getMethod() {
+    Method getMethod() {
         return method;
-    }
-
-    public void setMethod(Method method) {
-        this.method = method;
     }
 }

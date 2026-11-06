@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.sunchen.netbus.NetStatusBus;
 import com.sunchen.netbus.type.NetType;
-import com.sunchen.netbus.utils.Constrants;
 
 /**
  * 演示两种不需要注解、也不走反射的用法：
@@ -20,6 +19,8 @@ import com.sunchen.netbus.utils.Constrants;
  * 页面里的 {@link BlankFragment} 则演示注解订阅 + 生命周期自动注销。
  */
 public class Main2Activity extends AppCompatActivity {
+
+    private static final String TAG = "NetStatusBusSample";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +38,7 @@ public class Main2Activity extends AppCompatActivity {
 
         // LiveData 用法：Kotlin 可以直接 asFlow()
         NetStatusBus.getInstance().getNetTypeLiveData().observe(this, netType ->
-                Log.d(Constrants.LOG_TAG, netType.name() + "<<<<<<<<<<Main2Activity(LiveData)"));
+                Log.d(TAG, netType.name() + "<<<<<<<<<<Main2Activity(LiveData)"));
     }
 
     private void showNetTypeInActionBar(NetType netType) {
