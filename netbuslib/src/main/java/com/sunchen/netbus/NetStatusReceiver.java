@@ -319,11 +319,14 @@ public class NetStatusReceiver {
         if (holder == null || holder.methods == null) {
             return;
         }
-        // 分发过程中订阅者可能已被注销或已被回收
-        if (!networkList.contains(holder) || holder.getSubscriber() != subscriber) {
-            return;
-        }
         for (MethodManager subscribeMethod : holder.methods) {
+            // Re-check before every method: a earlier @NetSubscribe on this same holder may have
+            // unregistered the subscriber (or another callback may have removed it / GC cleared it).
+            // Matches the per-listener contains() check so remaining methods on a dead holder stop.
+            // 每个方法调用前再检查一次：同一订阅者的前一个方法可能已经 unregister，或已被回收。
+            if (!networkList.contains(holder) || holder.getSubscriber() != subscriber) {
+                return;
+            }
             switch (subscribeMethod.getMode()) {
                 case AUTO:
                     invoke(subscribeMethod, subscriber, netType);
