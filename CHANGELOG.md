@@ -28,6 +28,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 - `OutOfOrderDeliveryTest` reproduces a newer change being queued before an older one and checks that nobody is left on the older type or gets the same type twice.
 - `ModeMatrixTest` checks every `Mode` against every network transition (Wi-Fi, mobile, Ethernet, none) and against the initial callback on `register`, so the documented mode table cannot drift silently.
 - `VpnUnderlyingTypeTest` covers how the type under a VPN is picked, and `NetworkUtilsTest` now checks every `TelephonyManager.NETWORK_TYPE_*` value (0 to 20) against its 2G/3G/4G/5G generation.
+- `NetworkUtilsTest` covers `findActivity` walking `ContextWrapper` / `ContextThemeWrapper` chains (including nested wrappers), returning null for an Application or a wrapper around a non-Activity, and stopping on a self-referential wrapper or a cycle without hanging.
 
 ### Sample app
 

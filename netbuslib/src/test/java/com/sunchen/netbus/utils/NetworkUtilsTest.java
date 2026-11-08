@@ -2,7 +2,17 @@ package com.sunchen.netbus.utils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.view.ContextThemeWrapper;
 
 import com.sunchen.netbus.type.MobileGeneration;
 import com.sunchen.netbus.type.NetType;
@@ -85,5 +95,69 @@ public class NetworkUtilsTest {
         // 没有 Activity（例如 Application）时不能 startActivityForResult
         assertFalse(NetworkUtils.shouldStartForResult(false, 0));
         assertFalse(NetworkUtils.shouldStartForResult(false, -1));
+    }
+
+    @Test
+    public void findActivityReturnsPlainActivity() {
+        Activity activity = mock(Activity.class);
+        assertSame(activity, NetworkUtils.findActivity(activity));
+    }
+
+    @Test
+    public void findActivityUnwrapsContextWrapper() {
+        Activity activity = mock(Activity.class);
+        ContextWrapper wrapper = mock(ContextWrapper.class);
+        when(wrapper.getBaseContext()).thenReturn(activity);
+        assertSame(activity, NetworkUtils.findActivity(wrapper));
+    }
+
+    @Test
+    public void findActivityUnwrapsContextThemeWrapper() {
+        Activity activity = mock(Activity.class);
+        ContextThemeWrapper wrapper = mock(ContextThemeWrapper.class);
+        when(wrapper.getBaseContext()).thenReturn(activity);
+        assertSame(activity, NetworkUtils.findActivity(wrapper));
+    }
+
+    @Test
+    public void findActivityUnwrapsNestedWrappers() {
+        Activity activity = mock(Activity.class);
+        ContextWrapper inner = mock(ContextWrapper.class);
+        ContextThemeWrapper outer = mock(ContextThemeWrapper.class);
+        when(inner.getBaseContext()).thenReturn(activity);
+        when(outer.getBaseContext()).thenReturn(inner);
+        assertSame(activity, NetworkUtils.findActivity(outer));
+    }
+
+    @Test
+    public void findActivityReturnsNullForApplication() {
+        Application application = mock(Application.class);
+        Context base = mock(Context.class);
+        when(application.getBaseContext()).thenReturn(base);
+        assertNull(NetworkUtils.findActivity(application));
+    }
+
+    @Test
+    public void findActivityReturnsNullForWrapperAroundNonActivity() {
+        Context notActivity = mock(Context.class);
+        ContextWrapper wrapper = mock(ContextWrapper.class);
+        when(wrapper.getBaseContext()).thenReturn(notActivity);
+        assertNull(NetworkUtils.findActivity(wrapper));
+    }
+
+    @Test
+    public void findActivityReturnsNullForSelfReferentialWrapper() {
+        ContextWrapper wrapper = mock(ContextWrapper.class);
+        when(wrapper.getBaseContext()).thenReturn(wrapper);
+        assertNull(NetworkUtils.findActivity(wrapper));
+    }
+
+    @Test(timeout = 1000)
+    public void findActivityReturnsNullForWrapperCycleWithoutHanging() {
+        ContextWrapper first = mock(ContextWrapper.class);
+        ContextWrapper second = mock(ContextWrapper.class);
+        when(first.getBaseContext()).thenReturn(second);
+        when(second.getBaseContext()).thenReturn(first);
+        assertNull(NetworkUtils.findActivity(first));
     }
 }

@@ -502,9 +502,11 @@ public class NetworkUtils {
     }
 
     /**
+     * Walks the {@link ContextWrapper} chain looking for an Activity (for example one wrapped by a ContextThemeWrapper).
      * 沿着 {@link ContextWrapper} 链查找 Activity（例如 ContextThemeWrapper 包装的 Activity）
      */
-    private static Activity findActivity(Context context) {
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    static Activity findActivity(Context context) {
         Context current = context;
         // 防御性上限，避免异常的包装链导致死循环
         for (int i = 0; i < 20 && current != null; i++) {

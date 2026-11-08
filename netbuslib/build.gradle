@@ -39,6 +39,8 @@ dependencies {
     // getNetTypeLiveData() 返回 LiveData（纯 Java，不引入 Kotlin 标准库）
     api 'androidx.lifecycle:lifecycle-livedata-core:2.6.2'
     testImplementation 'junit:junit:4.13.2'
+    // Android stubs throw Stub! from ContextWrapper/Activity constructors; mocks avoid calling them
+    testImplementation 'org.mockito:mockito-core:5.14.2'
 }
 
 // Library version. JitPack passes -Pversion=<tag or commit>, which takes precedence.
