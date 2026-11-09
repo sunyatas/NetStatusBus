@@ -43,6 +43,10 @@ public class NetStatusBus {
     private final NetStatusReceiver receiver;
     private ConnectivityManager.NetworkCallback networkCallback;
     private final MutableLiveData<NetType> netTypeLiveData = new MutableLiveData<>();
+    /** Lifecycle bindings of {@code register(subscriber, owner)}. */
+    private final LifecycleBinding.Registry subscriberBindings = new LifecycleBinding.Registry();
+    /** Lifecycle bindings of {@code addListener(listener, owner)}; separate because one object may be both. */
+    private final LifecycleBinding.Registry listenerBindings = new LifecycleBinding.Registry();
 
     /**
      * Creates a separate bus. Most apps should use {@link #getInstance()} instead.
@@ -185,7 +189,8 @@ public class NetStatusBus {
      * 不必再手动调用 {@link #unregister(Object)}。
      * <p>
      * 订阅者和 owner 可以是同一个对象（如 {@code register(this, this)}），也可以不同（如 Fragment 里的某个 presenter，
-     * 传 {@code getViewLifecycleOwner()}）。如果 owner 已经 DESTROYED，则不会注册。提前手动 {@code unregister} 也没问题。
+     * 传 {@code getViewLifecycleOwner()}）。如果 owner 已经 DESTROYED，则不会注册。提前手动 {@code unregister} 也没问题：
+     * 手动注销会同时解除与 owner 的绑定，之后重新注册的订阅者不会在旧 owner 销毁时被再次注销。
      * <p>
      * 必须在主线程调用（Lifecycle 的要求）。
      * <p>
@@ -193,7 +198,9 @@ public class NetStatusBus {
      * automatically when {@code owner} reaches {@code DESTROYED}. The subscriber and the owner
      * may be the same object ({@code register(this, this)}) or different ones (for example a
      * presenter in a Fragment with {@code getViewLifecycleOwner()}). Nothing is registered if
-     * the owner is already destroyed. Must be called on the main thread.
+     * the owner is already destroyed. Unregistering by hand earlier is fine and also detaches
+     * the owner, so a later re-registration is not undone when this owner is destroyed.
+     * Must be called on the main thread.
      *
      * @throws IllegalStateException if {@link #init(Application)} has not been called
      */
@@ -203,11 +210,11 @@ public class NetStatusBus {
         if (subscriber == null || owner == null) {
             throw new IllegalArgumentException("subscriber and owner must not be null");
         }
-        boolean bound = LifecycleBinding.bind(subscriber, owner.getLifecycle(),
+        boolean bound = subscriberBindings.bind(subscriber, owner.getLifecycle(),
                 new LifecycleBinding.Unregistrar() {
                     @Override
                     public void unregister(Object s) {
-                        NetStatusBus.this.unregister(s);
+                        receiver.unRegisterObserver(s);
                     }
                 });
         if (bound) {
@@ -263,7 +270,7 @@ public class NetStatusBus {
     /**
      * Like {@link #addListener(OnNetTypeChangeListener)}, but removes the listener automatically
      * when {@code owner} reaches {@code DESTROYED}. Not added if the owner is already destroyed.
-     * Must be called on the main thread.
+     * {@link #removeListener} also detaches the owner. Must be called on the main thread.
      * <p>
      * 添加监听，并在 owner 进入 DESTROYED 时自动移除；owner 已销毁时不添加。必须在主线程调用。
      */
@@ -273,7 +280,7 @@ public class NetStatusBus {
         if (listener == null || owner == null) {
             throw new IllegalArgumentException("listener and owner must not be null");
         }
-        boolean bound = LifecycleBinding.bind(listener, owner.getLifecycle(),
+        boolean bound = listenerBindings.bind(listener, owner.getLifecycle(),
                 new LifecycleBinding.Unregistrar() {
                     @Override
                     public void unregister(Object l) {
@@ -291,6 +298,7 @@ public class NetStatusBus {
      * 移除通过 {@code addListener} 添加的监听，可重复调用。
      */
     public void removeListener(@NonNull OnNetTypeChangeListener listener) {
+        listenerBindings.cancel(listener);
         receiver.removeListener(listener);
     }
 
@@ -301,6 +309,7 @@ public class NetStatusBus {
      * 注销订阅者，可重复调用。
      */
     public void unregister(Object mContext) {
+        subscriberBindings.cancel(mContext);
         receiver.unRegisterObserver(mContext);
     }
 
@@ -311,6 +320,8 @@ public class NetStatusBus {
      * 注销所有注解订阅者并移除所有 addListener 添加的监听；不影响 LiveData 观察者。
      */
     public void unregisterAllObserver() {
+        subscriberBindings.cancelAll();
+        listenerBindings.cancelAll();
         receiver.unRegisterAllObserver();
     }
 }

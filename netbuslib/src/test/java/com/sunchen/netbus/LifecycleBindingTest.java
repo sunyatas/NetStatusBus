@@ -116,4 +116,125 @@ public class LifecycleBindingTest {
         lifecycle.handle(Lifecycle.Event.ON_DESTROY, Lifecycle.State.DESTROYED);
         assertEquals(0, receiver.aliveObserverCount());
     }
+
+    private static NetStatusReceiver syncReceiver() {
+        return new NetStatusReceiver(new NetStatusReceiver.Dispatcher() {
+            @Override
+            public void dispatch(Runnable runnable) {
+                runnable.run();
+            }
+        });
+    }
+
+    private static LifecycleBinding.Unregistrar unregistrarFor(final NetStatusReceiver receiver) {
+        return new LifecycleBinding.Unregistrar() {
+            @Override
+            public void unregister(Object s) {
+                receiver.unRegisterObserver(s);
+            }
+        };
+    }
+
+    @Test
+    public void manualCancelThenReRegisterSurvivesOldOwnerDestroy() {
+        NetStatusReceiver receiver = syncReceiver();
+        LifecycleBinding.Registry registry = new LifecycleBinding.Registry();
+        NetStatusReceiverTest.Subscriber subscriber = new NetStatusReceiverTest.Subscriber();
+        FakeLifecycle oldOwner = new FakeLifecycle(Lifecycle.State.RESUMED);
+
+        assertTrue(registry.bind(subscriber, oldOwner, unregistrarFor(receiver)));
+        receiver.registerObserver(subscriber);
+        assertEquals(1, registry.size());
+
+        // what NetStatusBus.unregister does
+        registry.cancel(subscriber);
+        receiver.unRegisterObserver(subscriber);
+        assertEquals(0, registry.size());
+
+        // registered again without an owner
+        receiver.registerObserver(subscriber);
+        oldOwner.handle(Lifecycle.Event.ON_DESTROY, Lifecycle.State.DESTROYED);
+
+        assertEquals(1, receiver.aliveObserverCount());
+        assertTrue(oldOwner.observers.isEmpty());
+    }
+
+    @Test
+    public void manualCancelThenReBindToNewOwnerFollowsOnlyNewOwner() {
+        NetStatusReceiver receiver = syncReceiver();
+        LifecycleBinding.Registry registry = new LifecycleBinding.Registry();
+        NetStatusReceiverTest.Subscriber subscriber = new NetStatusReceiverTest.Subscriber();
+        FakeLifecycle oldOwner = new FakeLifecycle(Lifecycle.State.RESUMED);
+        FakeLifecycle newOwner = new FakeLifecycle(Lifecycle.State.RESUMED);
+
+        registry.bind(subscriber, oldOwner, unregistrarFor(receiver));
+        receiver.registerObserver(subscriber);
+        registry.cancel(subscriber);
+        receiver.unRegisterObserver(subscriber);
+
+        registry.bind(subscriber, newOwner, unregistrarFor(receiver));
+        receiver.registerObserver(subscriber);
+
+        oldOwner.handle(Lifecycle.Event.ON_DESTROY, Lifecycle.State.DESTROYED);
+        assertEquals(1, receiver.aliveObserverCount());
+
+        newOwner.handle(Lifecycle.Event.ON_DESTROY, Lifecycle.State.DESTROYED);
+        assertEquals(0, receiver.aliveObserverCount());
+        assertEquals(0, registry.size());
+    }
+
+    @Test
+    public void destroyOfFirstOwnerAlsoDetachesOtherOwners() {
+        NetStatusReceiver receiver = syncReceiver();
+        LifecycleBinding.Registry registry = new LifecycleBinding.Registry();
+        NetStatusReceiverTest.Subscriber subscriber = new NetStatusReceiverTest.Subscriber();
+        FakeLifecycle first = new FakeLifecycle(Lifecycle.State.RESUMED);
+        FakeLifecycle second = new FakeLifecycle(Lifecycle.State.RESUMED);
+        RecordingUnregistrar recording = new RecordingUnregistrar();
+
+        registry.bind(subscriber, first, unregistrarFor(receiver));
+        registry.bind(subscriber, second, recording);
+        receiver.registerObserver(subscriber);
+
+        first.handle(Lifecycle.Event.ON_DESTROY, Lifecycle.State.DESTROYED);
+        assertEquals(0, receiver.aliveObserverCount());
+        assertEquals(0, registry.size());
+
+        // re-registered later: the second owner's stale binding must not undo it
+        receiver.registerObserver(subscriber);
+        second.handle(Lifecycle.Event.ON_DESTROY, Lifecycle.State.DESTROYED);
+        assertTrue(recording.unregistered.isEmpty());
+        assertEquals(1, receiver.aliveObserverCount());
+        assertTrue(second.observers.isEmpty());
+    }
+
+    @Test
+    public void cancelAllDetachesEveryBindingAndCancelIgnoresUnknown() {
+        LifecycleBinding.Registry registry = new LifecycleBinding.Registry();
+        RecordingUnregistrar recording = new RecordingUnregistrar();
+        FakeLifecycle owner = new FakeLifecycle(Lifecycle.State.STARTED);
+        Object a = new Object();
+        Object b = new Object();
+
+        registry.bind(a, owner, recording);
+        registry.bind(b, owner, recording);
+        registry.cancel(null);
+        registry.cancel(new Object());
+        assertEquals(2, registry.size());
+
+        registry.cancelAll();
+        assertEquals(0, registry.size());
+        owner.handle(Lifecycle.Event.ON_DESTROY, Lifecycle.State.DESTROYED);
+        assertTrue(recording.unregistered.isEmpty());
+        assertTrue(owner.observers.isEmpty());
+    }
+
+    @Test
+    public void registryDoesNotBindToDestroyedLifecycle() {
+        LifecycleBinding.Registry registry = new LifecycleBinding.Registry();
+        FakeLifecycle owner = new FakeLifecycle(Lifecycle.State.DESTROYED);
+        assertFalse(registry.bind(new Object(), owner, new RecordingUnregistrar()));
+        assertEquals(0, registry.size());
+        assertTrue(owner.observers.isEmpty());
+    }
 }

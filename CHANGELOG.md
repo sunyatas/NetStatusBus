@@ -13,6 +13,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ### Fixed
 
+- A subscriber registered with `register(subscriber, owner)` (or a listener added with `addListener(listener, owner)`) stayed tied to that owner even after a manual `unregister` / `removeListener`. If it was then registered again, with another owner or none, it was silently unregistered again when the first owner was destroyed, and the old owner kept a strong reference to it until then. A manual `unregister`, `removeListener` or `unregisterAllObserver` now detaches those owners. When the same object is bound to several owners, the first one destroyed unregisters it and detaches the others too.
 - If a `@NetSubscribe` method called `unregister` on its own subscriber (or another callback removed it) mid-dispatch, later annotated methods on that same subscriber could still run for the same event — for example a parent-class method after a child method that had already unregistered. Each method is now re-checked against the live observer list before invoke, matching the existing per-listener `contains` guard. Other subscribers are unaffected.
 - When a VPN does not declare its underlying transport (mostly Android 6.0 to 8.1) and both Wi-Fi and always-on mobile data are connected, the type under the VPN depended on the order the system listed networks, so it could be reported as `MOBILE` while the device was on Wi-Fi. It is now chosen with the same priority as everywhere else (Wi-Fi, then mobile, then Ethernet).
 - If two network callbacks reported changes at almost the same moment, the newer change could reach the main thread first and the older one second, so subscribers, listeners and `getNetTypeLiveData()` ended up on an outdated type while `getCurrentNetType()` already had the new one. An older change that arrives after a newer one is now dropped. The "only if changed" check and the update are also done in one step, so the same new type reported twice at once is delivered once, and the `WIFI`/`MOBILE` mode filters compare against the type subscribers actually received last.
@@ -23,6 +24,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ### Tests
 
+- `LifecycleBindingTest`: re-registering after a manual unregister survives the old owner's destroy, a new owner is followed instead of the old one, the first destroyed owner detaches the others, and `cancelAll` / unknown / destroyed-lifecycle cases.
 - `UnregisterDuringDispatchTest`: self-unregister skips remaining inherited methods in the same event; unregistering another subscriber in a callback skips them for that event; other subscribers still receive.
 - Override-dedupe: when a child class overrides a parent method with the same signature and both declare `@NetSubscribe`, only the child's method is kept and invoked once (`NetStatusReceiverTest.overridingSameSignatureKeepsOnlyChildMethod`).
 - `OutOfOrderDeliveryTest` reproduces a newer change being queued before an older one and checks that nobody is left on the older type or gets the same type twice.
