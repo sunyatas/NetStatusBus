@@ -46,11 +46,11 @@ Add the dependency to your app module's `build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'com.github.sunyatas:NetStatusBus:1.1.0'
+    implementation 'com.github.sunyatas:NetStatusBus:1.1.1'
 }
 ```
 
-> `1.1.0` is the latest release (see [Releases](https://github.com/sunyatas/NetStatusBus/releases) and the [changelog](CHANGELOG.md)). To try unreleased changes, use `master-SNAPSHOT`, which tracks the latest `master`, or pin a short commit hash such as `com.github.sunyatas:NetStatusBus:329c932`.
+> `1.1.1` is the latest release (see [Releases](https://github.com/sunyatas/NetStatusBus/releases) and the [changelog](CHANGELOG.md)). To try unreleased changes, use `master-SNAPSHOT`, which tracks the latest `master`, or pin a short commit hash such as `com.github.sunyatas:NetStatusBus:329c932`.
 
 ### Option 2: Build from source
 
@@ -70,7 +70,7 @@ dependencies {
 }
 ```
 
-Alternatively, run `./gradlew :netbuslib:publishToMavenLocal` in this repository and depend on `com.github.sunyatas:netstatusbus:1.1.0` from `mavenLocal()`.
+Alternatively, run `./gradlew :netbuslib:publishToMavenLocal` in this repository and depend on `com.github.sunyatas:netstatusbus:1.1.1` from `mavenLocal()`.
 
 ## Usage
 
@@ -293,6 +293,10 @@ It's recommended. Subscribers are held by weak references, so a forgotten `unreg
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed in each release since the 2019 Bintray builds.
+
+- **1.1.1** — `init` no longer crashes when the system refuses the network callback; lifecycle owners are detached on manual unregister; remaining `@NetSubscribe` methods are skipped after a mid-dispatch unregister; VPN underlying type and out-of-order delivery are fixed. `MethodManager` and `NetworkCallbackImpl` are no longer public.
+- **1.1.0** — `addListener` / `removeListener`, `NetworkUtils` Context overloads, `getCurrentNetType()` and `isInitialized()`.
+- **1.0.0** — first JitPack release: `getNetTypeLiveData()`, lifecycle-aware `register`, Ethernet/VPN, consumer R8 rules.
 
 ## License
 

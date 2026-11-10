@@ -6,6 +6,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-10
+
 ### Changed
 
 - `MethodManager` and `NetworkCallbackImpl` are no longer public: both are package-private `final` classes (same style as `DefaultNetworkCallbackImpl`). They were never meant as supported API. `MethodManager` fields are `final` and setters are removed.
@@ -113,6 +115,7 @@ First release published through JitPack:
   parameter or a non-void return type were already rejected.
 - Callbacks always arrive on the main thread.
 
-[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.0...master
+[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.1...master
+[1.1.1]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/sunyatas/NetStatusBus/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sunyatas/NetStatusBus/compare/6aaadb4...v1.0.0
