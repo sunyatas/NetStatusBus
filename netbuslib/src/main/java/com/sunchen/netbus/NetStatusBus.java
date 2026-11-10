@@ -9,6 +9,7 @@ import android.os.Build;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -42,6 +43,8 @@ public class NetStatusBus {
     private volatile Application application;
     private final NetStatusReceiver receiver;
     private ConnectivityManager.NetworkCallback networkCallback;
+    /** Whether {@link #init} has recorded the initial type and connected the LiveData. */
+    private boolean receiverPrepared;
     private final MutableLiveData<NetType> netTypeLiveData = new MutableLiveData<>();
     /** Lifecycle bindings of {@code register(subscriber, owner)}. */
     private final LifecycleBinding.Registry subscriberBindings = new LifecycleBinding.Registry();
@@ -124,7 +127,14 @@ public class NetStatusBus {
      * {@link #getNetTypeLiveData()} report right away. The library's manifest already
      * declares {@code ACCESS_NETWORK_STATE}.
      * <p>
+     * If the system refuses the network callback (some Android 11 devices throw a
+     * {@code SecurityException}, and an app holding too many callbacks gets a
+     * {@code TooManyRequestsException}), the error is logged instead of crashing: the bus stays
+     * usable and reports the type recorded here, but sees no changes until a later
+     * {@code init} call registers the callback successfully.
+     * <p>
      * 开始跟踪网络，通常在 {@code Application.onCreate()} 中调用一次；重复调用不会重复注册系统回调。
+     * 系统拒绝注册网络回调时只记录错误、不崩溃，之后再次调用 init 会重试注册。
      *
      * @throws IllegalArgumentException if {@code application} is {@code null}
      */
@@ -138,30 +148,63 @@ public class NetStatusBus {
         if (networkCallback != null) {
             return;
         }
-        receiver.setInitialNetType(com.sunchen.netbus.utils.NetworkUtils.getNetType());
-        // 监听在主线程回调，直接 setValue，保证 LiveData 的值与订阅方法收到的顺序一致
-        receiver.setNetTypeListener(new NetStatusReceiver.NetTypeListener() {
-            @Override
-            public void onNetTypeChanged(NetType netType) {
-                netTypeLiveData.setValue(netType);
-            }
-        });
+        if (!receiverPrepared) {
+            receiver.setInitialNetType(com.sunchen.netbus.utils.NetworkUtils.getNetType());
+            // 监听在主线程回调，直接 setValue，保证 LiveData 的值与订阅方法收到的顺序一致
+            receiver.setNetTypeListener(new NetStatusReceiver.NetTypeListener() {
+                @Override
+                public void onNetTypeChanged(NetType netType) {
+                    netTypeLiveData.setValue(netType);
+                }
+            });
+            receiverPrepared = true;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ConnectivityManager manager = (ConnectivityManager) application
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             if (manager != null) {
                 ConnectivityManager.NetworkCallback callback;
+                NetworkRequest request;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     // 只跟踪系统默认网络，网络切换时立即回调（#4 #11）
                     callback = new DefaultNetworkCallbackImpl(receiver, manager);
-                    manager.registerDefaultNetworkCallback(callback);
+                    request = null;
                 } else {
                     callback = new NetworkCallbackImpl(receiver);
-                    NetworkRequest request = new NetworkRequest.Builder().build();
-                    manager.registerNetworkCallback(request, callback);
+                    request = new NetworkRequest.Builder().build();
                 }
-                networkCallback = callback;
+                if (registerCallback(manager, callback, request)) {
+                    networkCallback = callback;
+                }
             }
+        }
+    }
+
+    /**
+     * Registers {@code callback} with the system: the default-network callback when
+     * {@code request} is {@code null} (Android 7.0+ only), otherwise a callback for
+     * {@code request}. Returns {@code false} instead of throwing if the system refuses.
+     * <p>
+     * 某些 Android 11 设备在 registerDefaultNetworkCallback 里会抛 SecurityException
+     * （"Package android does not belong to ..."），应用注册的回调过多时会抛 TooManyRequestsException。
+     * 观察网络的库不应该因此让 Application.onCreate 崩溃：记录错误并返回 false，下次 init 再重试。
+     */
+    @SuppressLint({"MissingPermission", "NewApi"})
+    static boolean registerCallback(@NonNull ConnectivityManager manager,
+                                    @NonNull ConnectivityManager.NetworkCallback callback,
+                                    @Nullable NetworkRequest request) {
+        try {
+            if (request == null) {
+                manager.registerDefaultNetworkCallback(callback);
+            } else {
+                manager.registerNetworkCallback(request, callback);
+            }
+            return true;
+        } catch (RuntimeException e) {
+            NetStatusReceiver.logError("Could not register the system network callback, so network "
+                    + "changes will not be delivered. The current type is still reported, and calling "
+                    + "NetStatusBus.getInstance().init(application) again retries.", e);
+            return false;
         }
     }
 

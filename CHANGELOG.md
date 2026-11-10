@@ -13,6 +13,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ### Fixed
 
+- `init` no longer crashes the app when the system refuses the network callback. Some Android 11 devices throw a `SecurityException` from `registerDefaultNetworkCallback`, and an app that already holds too many callbacks gets a `TooManyRequestsException`; either one used to escape `init` and take down `Application.onCreate()`. The error is now logged, the bus stays usable and reports the type recorded at `init`, and a later `init` call retries the registration (the initial type and `LiveData` are only set up the first time).
 - A subscriber registered with `register(subscriber, owner)` (or a listener added with `addListener(listener, owner)`) stayed tied to that owner even after a manual `unregister` / `removeListener`. If it was then registered again, with another owner or none, it was silently unregistered again when the first owner was destroyed, and the old owner kept a strong reference to it until then. A manual `unregister`, `removeListener` or `unregisterAllObserver` now detaches those owners. When the same object is bound to several owners, the first one destroyed unregisters it and detaches the others too.
 - If a `@NetSubscribe` method called `unregister` on its own subscriber (or another callback removed it) mid-dispatch, later annotated methods on that same subscriber could still run for the same event — for example a parent-class method after a child method that had already unregistered. Each method is now re-checked against the live observer list before invoke, matching the existing per-listener `contains` guard. Other subscribers are unaffected.
 - When a VPN does not declare its underlying transport (mostly Android 6.0 to 8.1) and both Wi-Fi and always-on mobile data are connected, the type under the VPN depended on the order the system listed networks, so it could be reported as `MOBILE` while the device was on Wi-Fi. It is now chosen with the same priority as everywhere else (Wi-Fi, then mobile, then Ethernet).
@@ -24,6 +25,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ### Tests
 
+- `CallbackRegistrationTest`: the default-network and request-based registrations call the right `ConnectivityManager` method, a `SecurityException` or other `RuntimeException` from the system is logged with its cause and reported as failure instead of thrown, and an `Error` still propagates.
 - `LifecycleBindingTest`: re-registering after a manual unregister survives the old owner's destroy, a new owner is followed instead of the old one, the first destroyed owner detaches the others, and `cancelAll` / unknown / destroyed-lifecycle cases.
 - `UnregisterDuringDispatchTest`: self-unregister skips remaining inherited methods in the same event; unregistering another subscriber in a callback skips them for that event; other subscribers still receive.
 - Override-dedupe: when a child class overrides a parent method with the same signature and both declare `@NetSubscribe`, only the child's method is kept and invoked once (`NetStatusReceiverTest.overridingSameSignatureKeepsOnlyChildMethod`).

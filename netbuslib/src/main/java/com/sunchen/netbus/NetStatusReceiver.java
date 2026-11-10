@@ -65,6 +65,11 @@ public class NetStatusReceiver {
 
     private static volatile ErrorLogger errorLogger = LOGCAT_LOGGER;
 
+    /** 库内其他类记录错误时使用，测试中同样可被替换 */
+    static void logError(String message, Throwable error) {
+        errorLogger.log(message, error);
+    }
+
     /** 仅供单元测试替换日志输出；传 null 恢复为 Logcat */
     static void setErrorLoggerForTest(ErrorLogger logger) {
         errorLogger = logger != null ? logger : LOGCAT_LOGGER;
