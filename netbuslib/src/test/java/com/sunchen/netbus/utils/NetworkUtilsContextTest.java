@@ -15,6 +15,7 @@ public class NetworkUtilsContextTest {
         assertRejectsNull(() -> NetworkUtils.getNetType(nul));
         assertRejectsNull(() -> NetworkUtils.isVpnActive(nul));
         assertRejectsNull(() -> NetworkUtils.getMobileGeneration(nul));
+        assertRejectsNull(() -> NetworkUtils.isMetered(nul));
     }
 
     private static void assertRejectsNull(Runnable call) {

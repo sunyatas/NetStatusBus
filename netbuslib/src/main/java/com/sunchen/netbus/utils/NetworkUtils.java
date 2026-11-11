@@ -346,6 +346,79 @@ public class NetworkUtils {
     }
 
     /**
+     * Returns whether the current default network is metered, i.e. the user may pay for data
+     * or have a data cap (mobile data, a Wi-Fi hotspot marked as metered, and so on). Use it to
+     * decide whether to start large downloads, video prefetch or sync right now.
+     * <p>
+     * This is not the same as {@code getNetType() == NetType.MOBILE}: a phone hotspot or a Wi-Fi
+     * network the user marked as metered is metered too, and some 5G plans are unmetered.
+     * On Android 6.0+ the active network's {@link NetworkCapabilities} are checked for
+     * {@link NetworkCapabilities#NET_CAPABILITY_NOT_METERED}; on Android 11+ a network that is
+     * {@code NET_CAPABILITY_TEMPORARILY_NOT_METERED} (for example an unmetered 5G plan) also
+     * counts as not metered. Older versions use
+     * {@link ConnectivityManager#isActiveNetworkMetered()}. When there is no network, or its
+     * state cannot be read, it returns {@code true}, the safe answer for "may I use a lot of
+     * data?".
+     * <p>
+     * 当前默认网络是否按流量计费（移动数据、被标记为计费的 Wi-Fi / 手机热点等）。
+     * 适合用来判断现在是否可以开始大文件下载、视频预加载或同步。
+     * 与 {@code getNetType() == NetType.MOBILE} 不同：热点或用户标记为计费的 Wi-Fi 也算计费，
+     * 部分 5G 不限量套餐（Android 11+ 的 TEMPORARILY_NOT_METERED）则不算。
+     * 没有网络或无法读取状态时返回 {@code true}（保守答案）。
+     *
+     * @return {@code true} if the current network is metered or there is no network
+     * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
+     */
+    public static boolean isMetered() {
+        return isMetered(NetStatusBus.getInstance().getApplication());
+    }
+
+    /**
+     * Same as {@link #isMetered()}, but uses the given {@link Context} and does not need
+     * {@code init}.
+     * <p>
+     * 同 {@link #isMetered()}，但使用传入的 {@link Context}，不需要先调用 init。
+     *
+     * @param context any context; must not be {@code null}
+     * @return {@code true} if the current network is metered or there is no network
+     * @throws IllegalArgumentException if {@code context} is {@code null}
+     */
+    public static boolean isMetered(Context context) {
+        ConnectivityManager cm = connectivityManager(context);
+        if (cm == null) {
+            return true;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Network active = cm.getActiveNetwork();
+            if (active == null) {
+                return true;
+            }
+            return isMetered(cm.getNetworkCapabilities(active), Build.VERSION.SDK_INT);
+        }
+        return cm.isActiveNetworkMetered();
+    }
+
+    /**
+     * Metered decision from capabilities. {@code null} capabilities (network just lost) count
+     * as metered. TEMPORARILY_NOT_METERED is only read on Android 11+ (API 30).
+     */
+    @SuppressLint("InlinedApi") // compile-time constant, only read when sdkInt >= 30
+    static boolean isMetered(NetworkCapabilities caps, int sdkInt) {
+        if (caps == null) {
+            return true;
+        }
+        boolean notMetered = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
+        boolean temporarilyNotMetered = sdkInt >= 30
+                && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_TEMPORARILY_NOT_METERED);
+        return isMeteredFromFlags(notMetered, temporarilyNotMetered);
+    }
+
+    /** Pure decision: metered unless the network is (temporarily) not metered. */
+    static boolean isMeteredFromFlags(boolean notMetered, boolean temporarilyNotMetered) {
+        return !notMetered && !temporarilyNotMetered;
+    }
+
+    /**
      * Returns the generation (2G to 5G) of the current mobile data network. This is opt-in:
      * it only works when the current type is {@link NetType#MOBILE} and the host app holds
      * {@code READ_PHONE_STATE}; otherwise it returns {@link MobileGeneration#UNKNOWN} and

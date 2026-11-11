@@ -6,6 +6,14 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+### Added
+
+- `NetworkUtils.isMetered()` and `isMetered(Context)`: whether the current default network is metered, for deciding when to start large downloads, video prefetch or sync. Unlike `getNetType() == MOBILE`, a phone hotspot or a Wi-Fi network the user marked as metered counts as metered, and on Android 11+ a temporarily unmetered network (for example an unmetered 5G plan) counts as not metered. Returns `true` when there is no network. Uses `NetworkCapabilities` on Android 6.0+ and `ConnectivityManager.isActiveNetworkMetered()` below.
+
+### Tests
+
+- `MeteredTest` covers the metered decision (not-metered, metered, missing capabilities, temporarily-not-metered only trusted from API 30); `NetworkUtilsContextTest` checks `isMetered(null)` is rejected.
+
 ## [1.1.1] - 2026-11-10
 
 ### Changed
