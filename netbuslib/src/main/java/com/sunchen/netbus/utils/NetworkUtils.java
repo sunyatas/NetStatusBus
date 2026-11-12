@@ -130,6 +130,75 @@ public class NetworkUtils {
     }
 
     /**
+     * Returns whether the current default network has been checked by the system and really
+     * reaches the internet. Use it when "connected" is not enough, for example to decide
+     * whether to retry a failed request now or to show "signed in to Wi-Fi but no internet".
+     * <p>
+     * {@link #isNetworkAvailable()} only requires {@link NetworkCapabilities#NET_CAPABILITY_INTERNET},
+     * so a hotel / airport Wi-Fi that still waits for its sign-in page, or a LAN-only network,
+     * counts as available. This method additionally requires
+     * {@link NetworkCapabilities#NET_CAPABILITY_VALIDATED} and returns {@code false} while the
+     * network is a captive portal ({@link NetworkCapabilities#NET_CAPABILITY_CAPTIVE_PORTAL}).
+     * Right after a network connects, validation can take a moment, so this may briefly be
+     * {@code false}. Below Android 6.0 the system does not expose validation; there it returns
+     * the same as {@link #isNetworkAvailable()}.
+     * <p>
+     * 当前默认网络是否已通过系统验证、确实能访问互联网。
+     * 与 {@link #isNetworkAvailable()} 不同：需要登录页的酒店 / 机场 Wi-Fi（强制门户）
+     * 或仅局域网的网络会返回 {@code false}。网络刚连上时系统验证需要一点时间，可能短暂为 false。
+     * Android 6.0 以下系统不提供验证信息，此时结果与 {@link #isNetworkAvailable()} 相同。
+     *
+     * @return {@code true} if the current network is validated to reach the internet
+     * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
+     */
+    public static boolean isInternetValidated() {
+        return isInternetValidated(NetStatusBus.getInstance().getApplication());
+    }
+
+    /**
+     * Same as {@link #isInternetValidated()}, but uses the given {@link Context} and does not
+     * need {@code init}.
+     * <p>
+     * 同 {@link #isInternetValidated()}，但使用传入的 {@link Context}，不需要先调用 init。
+     *
+     * @param context any context; must not be {@code null}
+     * @return {@code true} if the current network is validated to reach the internet
+     * @throws IllegalArgumentException if {@code context} is {@code null}
+     */
+    public static boolean isInternetValidated(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return isNetworkAvailable(context);
+        }
+        ConnectivityManager cm = connectivityManager(context);
+        if (cm == null) {
+            return false;
+        }
+        Network active = cm.getActiveNetwork();
+        if (active == null) {
+            return false;
+        }
+        return isValidated(cm.getNetworkCapabilities(active));
+    }
+
+    /** Android 6.0+ validation from capabilities; {@code null} (network just lost) is false. */
+    @android.annotation.TargetApi(Build.VERSION_CODES.M)
+    static boolean isValidated(NetworkCapabilities caps) {
+        if (caps == null) {
+            return false;
+        }
+        return isValidatedFromFlags(
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL));
+    }
+
+    /** Pure decision: INTERNET and VALIDATED, and not a captive portal. */
+    static boolean isValidatedFromFlags(boolean hasInternet, boolean hasValidated,
+                                        boolean captivePortal) {
+        return hasInternet && hasValidated && !captivePortal;
+    }
+
+    /**
      * Returns the type of the current default network: {@link NetType#WIFI},
      * {@link NetType#MOBILE}, {@link NetType#ETHERNET}, or {@link NetType#NONE}.
      * A VPN reports the type of the network underneath it.

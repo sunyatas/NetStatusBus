@@ -256,12 +256,13 @@ NetType type = NetworkUtils.getNetType();            // 当前网络类型
 boolean online = NetworkUtils.isNetworkAvailable();  // 是否有已连接的网络
 boolean vpn = NetworkUtils.isVpnActive();            // 是否连着 VPN（6.0+）
 boolean metered = NetworkUtils.isMetered();          // 是否按流量计费（移动数据、计费 Wi-Fi/热点）；无网络时为 true
+boolean validated = NetworkUtils.isInternetValidated(); // 是否已通过系统验证能上网；需要登录页的 Wi-Fi（强制门户）为 false
 MobileGeneration g = NetworkUtils.getMobileGeneration(); // G2/G3/G4/G5/UNKNOWN，需要 READ_PHONE_STATE
 NetworkUtils.openSetting(context);                   // 打开系统 Wi-Fi 设置
 NetworkUtils.openSetting(activity, REQUEST_WIFI);    // 同上，返回时回调 onActivityResult
 ```
 
-无参数的方法使用 `init` 传入的 `Application`，如果还没调用 `init` 会抛出 `IllegalStateException`。它们都有一个接收 `Context` 的重载（`getNetType(context)`、`isNetworkAvailable(context)`、`isVpnActive(context)`、`isMetered(context)`、`getMobileGeneration(context)`），不需要先调用 `init`，可以在 `BroadcastReceiver`、WorkManager 任务或其他库中使用。内部只使用 application context，传入 `Activity` 也不会造成泄漏。
+无参数的方法使用 `init` 传入的 `Application`，如果还没调用 `init` 会抛出 `IllegalStateException`。它们都有一个接收 `Context` 的重载（`getNetType(context)`、`isNetworkAvailable(context)`、`isVpnActive(context)`、`isMetered(context)`、`isInternetValidated(context)`、`getMobileGeneration(context)`），不需要先调用 `init`，可以在 `BroadcastReceiver`、WorkManager 任务或其他库中使用。内部只使用 application context，传入 `Activity` 也不会造成泄漏。
 
 `openSetting(context)` 可以传入任意 `Context`；传入非 Activity（例如 `Application`）时会自动加上 `FLAG_ACTIVITY_NEW_TASK`。`openSetting(context, requestCode)` 在 `context` 是（或包装了）`Activity` 且 `requestCode >= 0` 时使用 `startActivityForResult`，用户返回时会回调你的 `onActivityResult`。系统设置页通常返回 `RESULT_CANCELED`，所以请在回调里调用 `NetworkUtils.getNetType()` 读取最新状态。`requestCode` 传负数表示不需要返回结果。如果设备上没有 Wi-Fi 设置页，会退回到系统设置首页。
 

@@ -9,10 +9,12 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 ### Added
 
 - `NetworkUtils.isMetered()` and `isMetered(Context)`: whether the current default network is metered, for deciding when to start large downloads, video prefetch or sync. Unlike `getNetType() == MOBILE`, a phone hotspot or a Wi-Fi network the user marked as metered counts as metered, and on Android 11+ a temporarily unmetered network (for example an unmetered 5G plan) counts as not metered. Returns `true` when there is no network. Uses `NetworkCapabilities` on Android 6.0+ and `ConnectivityManager.isActiveNetworkMetered()` below.
+- `NetworkUtils.isInternetValidated()` and `isInternetValidated(Context)`: whether the system has checked that the current default network really reaches the internet (`NET_CAPABILITY_VALIDATED`, and not a captive portal). `isNetworkAvailable()` keeps its meaning (a hotel Wi-Fi waiting for its sign-in page or a LAN-only network still counts as available); use the new method when that is not enough. Below Android 6.0 it returns the same as `isNetworkAvailable()`.
 
 ### Tests
 
-- `MeteredTest` covers the metered decision (not-metered, metered, missing capabilities, temporarily-not-metered only trusted from API 30); `NetworkUtilsContextTest` checks `isMetered(null)` is rejected.
+- `MeteredTest` covers the metered decision (not-metered, metered, missing capabilities, temporarily-not-metered only trusted from API 30); `NetworkUtilsContextTest` checks `isMetered(null)` and `isInternetValidated(null)` are rejected.
+- `ValidatedTest` covers the validated decision: validated, captive portal and LAN-only (available but not validated), missing INTERNET, missing capabilities.
 
 ## [1.1.1] - 2026-11-10
 
