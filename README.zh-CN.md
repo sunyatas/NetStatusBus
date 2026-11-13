@@ -46,11 +46,11 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-    implementation 'com.github.sunyatas:NetStatusBus:1.1.1'
+    implementation 'com.github.sunyatas:NetStatusBus:1.2.0'
 }
 ```
 
-> `1.1.1` 是目前最新的正式版本（见 [Releases](https://github.com/sunyatas/NetStatusBus/releases) 和[更新日志](CHANGELOG.md)）。如果想提前使用尚未发布的改动，可以用 `master-SNAPSHOT`（跟随 `master` 最新代码），或者换成某个提交的短哈希，例如 `com.github.sunyatas:NetStatusBus:329c932`。
+> `1.2.0` 是目前最新的正式版本（见 [Releases](https://github.com/sunyatas/NetStatusBus/releases) 和[更新日志](CHANGELOG.md)）。如果想提前使用尚未发布的改动，可以用 `master-SNAPSHOT`（跟随 `master` 最新代码），或者换成某个提交的短哈希，例如 `com.github.sunyatas:NetStatusBus:329c932`。
 
 ### 方式二：从源码构建
 
@@ -70,7 +70,7 @@ dependencies {
 }
 ```
 
-也可以在本仓库中执行 `./gradlew :netbuslib:publishToMavenLocal`，再通过 `mavenLocal()` 依赖 `com.github.sunyatas:netstatusbus:1.1.1`。
+也可以在本仓库中执行 `./gradlew :netbuslib:publishToMavenLocal`，再通过 `mavenLocal()` 依赖 `com.github.sunyatas:netstatusbus:1.2.0`。
 
 ## 使用方法
 
@@ -296,6 +296,7 @@ NetworkUtils.openSetting(activity, REQUEST_WIFI);    // 同上，返回时回调
 
 自 2019 年 Bintray 版本以来每个版本的变化，见 [CHANGELOG.md](CHANGELOG.md)（英文）。
 
+- **1.2.0** — 新增 `NetworkUtils.isMetered()` 和 `isInternetValidated()`（以及无需先 `init` 的 Context 重载）。示例 App 会显示这两项，点击详情可在系统完成验证后重新查询。
 - **1.1.1** — 系统拒绝网络回调时 `init` 不再崩溃；手动注销会解除生命周期绑定；分发中途注销后跳过同一对象上剩余的 `@NetSubscribe` 方法；修复 VPN 底层类型和乱序送达。`MethodManager` 和 `NetworkCallbackImpl` 不再对外公开。
 - **1.1.0** — `addListener` / `removeListener`、`NetworkUtils` 的 Context 重载、`getCurrentNetType()` 和 `isInitialized()`。
 - **1.0.0** — 首个 JitPack 正式版：`getNetTypeLiveData()`、带生命周期的 `register`、以太网/VPN、consumer R8 规则。

@@ -6,6 +6,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-13
+
 ### Added
 
 - `NetworkUtils.isMetered()` and `isMetered(Context)`: whether the current default network is metered, for deciding when to start large downloads, video prefetch or sync. Unlike `getNetType() == MOBILE`, a phone hotspot or a Wi-Fi network the user marked as metered counts as metered, and on Android 11+ a temporarily unmetered network (for example an unmetered 5G plan) counts as not metered. Returns `true` when there is no network. Uses `NetworkCapabilities` on Android 6.0+ and `ConnectivityManager.isActiveNetworkMetered()` below.
@@ -129,7 +131,8 @@ First release published through JitPack:
   parameter or a non-void return type were already rejected.
 - Callbacks always arrive on the main thread.
 
-[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.1...master
+[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.2.0...master
+[1.2.0]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/sunyatas/NetStatusBus/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sunyatas/NetStatusBus/compare/6aaadb4...v1.0.0
