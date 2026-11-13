@@ -16,6 +16,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 - `MeteredTest` covers the metered decision (not-metered, metered, missing capabilities, temporarily-not-metered only trusted from API 30); `NetworkUtilsContextTest` checks `isMetered(null)` and `isInternetValidated(null)` are rejected.
 - `ValidatedTest` covers the validated decision: validated, captive portal and LAN-only (available but not validated), missing INTERNET, missing capabilities.
 
+### Sample app
+
+- `MainActivity` also shows `isInternetValidated` and `isMetered` in its details line. Tapping the details re-reads them, because the system usually finishes validating a few seconds after the network-change callback.
+
 ## [1.1.1] - 2026-11-10
 
 ### Changed

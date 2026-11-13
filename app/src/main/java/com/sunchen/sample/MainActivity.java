@@ -18,7 +18,8 @@ import com.sunchen.netbus.utils.NetworkUtils;
  * 演示：
  * <ul>
  *     <li>按 {@link Mode} 过滤的 {@link NetSubscribe} 方法（在 {@link BaseActivity} 的 onStart/onStop 里注册和注销）；</li>
- *     <li>{@link NetworkUtils} 的即时查询（是否可用、VPN、移动网络制式）；</li>
+ *     <li>{@link NetworkUtils} 的即时查询（是否可用、是否已验证能上网、是否按流量计费、VPN、移动网络制式），
+ *     点击详情可重新查询；</li>
  *     <li>{@link NetworkUtils#openSetting(android.content.Context, int)} 打开 Wi-Fi 设置，
  *     返回后在 onActivityResult 里刷新状态。</li>
  * </ul>
@@ -39,6 +40,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         imgNetStatus = findViewById(R.id.img_net_status);
         findViewById(R.id.btn_to_fragment).setOnClickListener(this);
         findViewById(R.id.btn_open_wifi_settings).setOnClickListener(this);
+        // 网络刚连上时系统验证需要几秒，回调里读到的「已验证」可能还是否，点击详情可重新查询
+        tvDetails.setOnClickListener(this);
     }
 
     @Override
@@ -47,6 +50,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (id == R.id.btn_open_wifi_settings) {
             // 传入 Activity 和非负 requestCode，返回时会回调 onActivityResult
             NetworkUtils.openSetting(this, REQUEST_WIFI_SETTINGS);
+        } else if (id == R.id.tv_details) {
+            showDetails(NetworkUtils.getNetType(this));
         } else if (id == R.id.btn_to_fragment) {
             startActivity(new Intent(this, Main2Activity.class));
         }
@@ -105,8 +110,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         // 移动网络制式需要宿主声明并获得 READ_PHONE_STATE，否则返回 UNKNOWN（示例未申请该权限）
         String details = "类型：" + netType.name()
                 + "\n可上网：" + (NetworkUtils.isNetworkAvailable(this) ? "是" : "否")
+                + "\n已验证能上网：" + (NetworkUtils.isInternetValidated(this) ? "是" : "否（验证中、需登录的 Wi-Fi 或仅局域网）")
+                + "\n按流量计费：" + (NetworkUtils.isMetered(this) ? "是" : "否")
                 + "\nVPN：" + (NetworkUtils.isVpnActive(this) ? "已连接" : "未连接")
-                + "\n移动网络制式：" + NetworkUtils.getMobileGeneration(this).name();
+                + "\n移动网络制式：" + NetworkUtils.getMobileGeneration(this).name()
+                + "\n（点击此处重新查询）";
         tvDetails.setText(details);
     }
 }
