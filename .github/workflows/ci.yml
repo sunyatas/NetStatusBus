@@ -40,6 +40,17 @@ jobs:
       - name: Assemble debug and run unit tests
         run: ./gradlew assembleDebug testDebugUnitTest --no-daemon --stacktrace
 
+      - name: Android Lint (library, warnings are errors)
+        run: ./gradlew :netbuslib:lintDebug --no-daemon --stacktrace
+
+      - name: Upload lint report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netbuslib-lint-report
+          path: netbuslib/build/reports/lint-results-debug.*
+          if-no-files-found: ignore
+
       - name: Assemble minified release (checks consumer R8 rules)
         run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
 

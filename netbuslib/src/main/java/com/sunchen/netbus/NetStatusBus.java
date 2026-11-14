@@ -159,23 +159,21 @@ public class NetStatusBus {
             });
             receiverPrepared = true;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ConnectivityManager manager = (ConnectivityManager) application
-                    .getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (manager != null) {
-                ConnectivityManager.NetworkCallback callback;
-                NetworkRequest request;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    // 只跟踪系统默认网络，网络切换时立即回调（#4 #11）
-                    callback = new DefaultNetworkCallbackImpl(receiver, manager);
-                    request = null;
-                } else {
-                    callback = new NetworkCallbackImpl(receiver);
-                    request = new NetworkRequest.Builder().build();
-                }
-                if (registerCallback(manager, callback, request)) {
-                    networkCallback = callback;
-                }
+        ConnectivityManager manager = (ConnectivityManager) application
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (manager != null) {
+            ConnectivityManager.NetworkCallback callback;
+            NetworkRequest request;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                // 只跟踪系统默认网络，网络切换时立即回调（#4 #11）
+                callback = new DefaultNetworkCallbackImpl(receiver, manager);
+                request = null;
+            } else {
+                callback = new NetworkCallbackImpl(receiver);
+                request = new NetworkRequest.Builder().build();
+            }
+            if (registerCallback(manager, callback, request)) {
+                networkCallback = callback;
             }
         }
     }

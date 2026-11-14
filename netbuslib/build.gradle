@@ -25,6 +25,14 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    lint {
+        // CI runs :netbuslib:lintDebug; any new warning fails the build
+        warningsAsErrors true
+        abortOnError true
+        // Dependency versions are kept low on purpose so the host app's newer versions win
+        disable 'GradleDependency'
+    }
+
     publishing {
         singleVariant('release') {
             withSourcesJar()

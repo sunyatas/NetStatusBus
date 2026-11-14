@@ -3,8 +3,6 @@ package com.sunchen.netbus;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.os.Build;
-import androidx.annotation.RequiresApi;
 
 import com.sunchen.netbus.utils.NetworkUtils;
 
@@ -18,7 +16,6 @@ import com.sunchen.netbus.utils.NetworkUtils;
  * onLost 时系统的 activeNetwork 可能仍指向刚断开的网络，因此需要把断开的网络排除掉，
  * 否则断开 WIFI 后仍会得到 WIFI（#6 #9）。
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 final class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
     private final NetStatusReceiver mReceiver;
 
