@@ -52,22 +52,22 @@ public class BlankFragment extends Fragment {
         Log.d(TAG, netType.name() + "<<<<<<<<<<BlankFragment");
         switch (netType) {
             case NONE:
-                tvTips.setText("网络连接中断...");
+                tvTips.setText(R.string.status_none);
                 imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_no));
                 break;
 
             case WIFI:
-                tvTips.setText("wifi已连接");
+                tvTips.setText(R.string.status_wifi);
                 imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_wifi));
                 break;
 
             case MOBILE:
-                tvTips.setText("移动网络已连接");
+                tvTips.setText(R.string.status_mobile);
                 imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_mobile));
                 break;
 
             case ETHERNET:
-                tvTips.setText("以太网已连接");
+                tvTips.setText(R.string.status_ethernet);
                 imgNetStatus.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_wifi));
                 break;
 

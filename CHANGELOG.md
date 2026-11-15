@@ -10,6 +10,12 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - CI now runs Android Lint on the library (`:netbuslib:lintDebug`) with warnings treated as errors, and uploads the lint report when it fails. `GradleDependency` is disabled because the library's AndroidX versions are kept low on purpose so the host app's newer versions win.
 - Removed two version checks lint flagged as always true with `minSdk 21` (`SDK_INT >= LOLLIPOP` in `init`, `@RequiresApi(LOLLIPOP)` on the internal pre-7.0 callback). No behavior change.
+- CI now also runs Android Lint on the sample app (`:app:lintDebug`, warnings as errors, `GradleDependency` disabled); both lint reports are uploaded when either fails.
+
+### Sample app
+
+- Sample app lint is clean (was 19 warnings): UI text moved to `strings.xml` (no string literals in layouts or `setText`), content descriptions on the network status images, monochrome layer for the adaptive launcher icons (Android 13 themed icons), `FragmentContainerView` as the fragment container, no redundant white background on the fragment, and `VectorPath` suppressed on the one static 120dp icon. The five `GradleDependency` warnings are handled by disabling that check, as in the library.
+- Sample `targetSdk` raised from 34 to 35. On Android 15 the sample's theme opts out of the enforced edge-to-edge layout (`values-v35`), since its simple layouts don't handle window insets; the screens look the same as before.
 
 ## [1.2.0] - 2026-11-13
 

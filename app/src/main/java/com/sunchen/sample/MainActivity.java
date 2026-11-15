@@ -72,7 +72,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      */
     @NetSubscribe(mode = Mode.WIFI_CONNECT)
     public void onWifiConnected() {
-        tvTips.setText("wifi已连接");
+        tvTips.setText(R.string.status_wifi);
         imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_wifi));
     }
 
@@ -81,7 +81,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      */
     @NetSubscribe(mode = Mode.MOBILE_CONNECT)
     public void onMobileConnected() {
-        tvTips.setText("移动网络已连接");
+        tvTips.setText(R.string.status_mobile);
         imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_mobile));
     }
 
@@ -90,7 +90,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
      */
     @NetSubscribe(mode = Mode.NONE)
     public void onDisconnected() {
-        tvTips.setText("网络连接中断...");
+        tvTips.setText(R.string.status_none);
         imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_no));
     }
 
@@ -100,7 +100,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @NetSubscribe(mode = Mode.AUTO)
     public void onNetTypeChanged(NetType netType) {
         if (netType == NetType.ETHERNET) {
-            tvTips.setText("以太网已连接");
+            tvTips.setText(R.string.status_ethernet);
             imgNetStatus.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_wifi));
         }
         showDetails(netType);
@@ -108,13 +108,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private void showDetails(NetType netType) {
         // 移动网络制式需要宿主声明并获得 READ_PHONE_STATE，否则返回 UNKNOWN（示例未申请该权限）
-        String details = "类型：" + netType.name()
-                + "\n可上网：" + (NetworkUtils.isNetworkAvailable(this) ? "是" : "否")
-                + "\n已验证能上网：" + (NetworkUtils.isInternetValidated(this) ? "是" : "否（验证中、需登录的 Wi-Fi 或仅局域网）")
-                + "\n按流量计费：" + (NetworkUtils.isMetered(this) ? "是" : "否")
-                + "\nVPN：" + (NetworkUtils.isVpnActive(this) ? "已连接" : "未连接")
-                + "\n移动网络制式：" + NetworkUtils.getMobileGeneration(this).name()
-                + "\n（点击此处重新查询）";
+        String details = getString(R.string.details_format,
+                netType.name(),
+                yesNo(NetworkUtils.isNetworkAvailable(this)),
+                NetworkUtils.isInternetValidated(this) ? getString(R.string.yes) : getString(R.string.not_validated),
+                yesNo(NetworkUtils.isMetered(this)),
+                getString(NetworkUtils.isVpnActive(this) ? R.string.vpn_on : R.string.vpn_off),
+                NetworkUtils.getMobileGeneration(this).name());
         tvDetails.setText(details);
+    }
+
+    private String yesNo(boolean value) {
+        return getString(value ? R.string.yes : R.string.no);
     }
 }

@@ -1,7 +1,28 @@
 <resources>
     <string name="app_name">NetworkStatusBus</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">这里是一个fragment</string>
     <string name="hello_blank_activity">这里是一个Activity</string>
+    <string name="try_change_network">现在尝试手动改变一下你的网络状态</string>
+    <string name="open_wifi_settings">打开 Wi-Fi 设置</string>
+    <string name="go_to_fragment">跳转到Fragment</string>
+    <string name="net_status_icon">网络状态图标</string>
+
+    <string name="status_wifi">wifi已连接</string>
+    <string name="status_mobile">移动网络已连接</string>
+    <string name="status_ethernet">以太网已连接</string>
+    <string name="status_none">网络连接中断…</string>
+
+    <string name="subtitle_wifi">当前网络：Wi-Fi</string>
+    <string name="subtitle_mobile">当前网络：移动网络</string>
+    <string name="subtitle_ethernet">当前网络：以太网</string>
+    <string name="subtitle_none">当前无网络</string>
+
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="not_validated">否（验证中、需登录的 Wi-Fi 或仅局域网）</string>
+    <string name="vpn_on">已连接</string>
+    <string name="vpn_off">未连接</string>
+    <!-- 1 类型，2 可上网，3 已验证，4 按流量计费，5 VPN，6 移动网络制式 -->
+    <string name="details_format">类型：%1$s\n可上网：%2$s\n已验证能上网：%3$s\n按流量计费：%4$s\nVPN：%5$s\n移动网络制式：%6$s\n（点击此处重新查询）</string>
 </resources>

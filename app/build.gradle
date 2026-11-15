@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId "com.sunchen.sample"
         minSdk 21
-        targetSdk 34
+        targetSdk 35
         versionCode 4
         versionName "1.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -22,6 +22,14 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    lint {
+        // CI runs :app:lintDebug; any new warning fails the build
+        warningsAsErrors true
+        abortOnError true
+        // Dependency upgrades are done on purpose, not whenever lint's bundled list says so
+        disable 'GradleDependency'
     }
 
     compileOptions {

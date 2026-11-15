@@ -3,6 +3,7 @@ package com.sunchen.sample;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -48,17 +49,18 @@ public class Main2Activity extends AppCompatActivity {
         }
     }
 
-    private static String describe(NetType netType) {
+    @StringRes
+    private static int describe(NetType netType) {
         switch (netType) {
             case WIFI:
-                return "当前网络：Wi-Fi";
+                return R.string.subtitle_wifi;
             case MOBILE:
-                return "当前网络：移动网络";
+                return R.string.subtitle_mobile;
             case ETHERNET:
-                return "当前网络：以太网";
+                return R.string.subtitle_ethernet;
             case NONE:
             default:
-                return "当前无网络";
+                return R.string.subtitle_none;
         }
     }
 }

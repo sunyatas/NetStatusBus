@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff"
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".BlankFragment">
@@ -12,6 +11,7 @@
         android:id="@+id/img_net_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/net_status_icon"
         android:src="@drawable/ic_mobile" />
 
     <TextView
@@ -27,5 +27,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="现在尝试手动改变一下你的网络状态" />
+        android:text="@string/try_change_network" />
 </LinearLayout>

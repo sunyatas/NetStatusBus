@@ -1,0 +1,12 @@
+<resources>
+
+    <!--
+        targetSdk 35 makes Android 15 draw every activity edge-to-edge. The sample's plain
+        layouts don't handle window insets, so keep the old behavior there; this attribute is
+        ignored from targetSdk 36 on, when the layouts will need to handle insets themselves.
+    -->
+    <style name="AppTheme" parent="Base.AppTheme">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+
+</resources>

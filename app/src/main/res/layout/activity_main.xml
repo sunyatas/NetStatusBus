@@ -11,6 +11,7 @@
         android:id="@+id/img_net_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/net_status_icon"
         tools:src="@drawable/ic_mobile" />
 
     <TextView
@@ -26,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="现在尝试手动改变一下你的网络状态" />
+        android:text="@string/try_change_network" />
 
     <TextView
         android:id="@+id/tv_details"
@@ -42,7 +43,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="打开 Wi-Fi 设置" />
+        android:text="@string/open_wifi_settings" />
 
 
     <Button
@@ -50,7 +51,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="跳转到Fragment" />
+        android:text="@string/go_to_fragment" />
 
 
 </LinearLayout>
