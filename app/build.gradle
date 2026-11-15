@@ -28,8 +28,9 @@ android {
         // CI runs :app:lintDebug; any new warning fails the build
         warningsAsErrors true
         abortOnError true
-        // Dependency upgrades are done on purpose, not whenever lint's bundled list says so
-        disable 'GradleDependency'
+        // Dependency and targetSdk upgrades are done on purpose. OldTargetApi also depends on the
+        // newest platform installed on the machine, so it would pass locally and fail on CI.
+        disable 'GradleDependency', 'OldTargetApi'
     }
 
     compileOptions {

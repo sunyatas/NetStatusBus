@@ -10,7 +10,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - CI now runs Android Lint on the library (`:netbuslib:lintDebug`) with warnings treated as errors, and uploads the lint report when it fails. `GradleDependency` is disabled because the library's AndroidX versions are kept low on purpose so the host app's newer versions win.
 - Removed two version checks lint flagged as always true with `minSdk 21` (`SDK_INT >= LOLLIPOP` in `init`, `@RequiresApi(LOLLIPOP)` on the internal pre-7.0 callback). No behavior change.
-- CI now also runs Android Lint on the sample app (`:app:lintDebug`, warnings as errors, `GradleDependency` disabled); both lint reports are uploaded when either fails.
+- CI now also runs Android Lint on the sample app (`:app:lintDebug`, warnings as errors; `GradleDependency` and `OldTargetApi` disabled, the latter because its result depends on the newest SDK platform installed on the build machine); both lint reports are uploaded when either fails.
 
 ### Sample app
 
