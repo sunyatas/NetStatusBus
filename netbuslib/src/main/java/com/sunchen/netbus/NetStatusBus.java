@@ -71,6 +71,8 @@ public class NetStatusBus {
      * Returns the shared bus.
      * <p>
      * 返回全局单例。
+     *
+     * @return the process-wide {@code NetStatusBus} instance
      */
     public static NetStatusBus getInstance() {
         return HolderClass.instance;
@@ -79,6 +81,7 @@ public class NetStatusBus {
     /**
      * Returns the application passed to {@link #init(Application)}.
      *
+     * @return the application given to {@code init}, never {@code null}
      * @throws IllegalStateException if {@link #init(Application)} has not been called
      */
     public Application getApplication() {
@@ -90,6 +93,8 @@ public class NetStatusBus {
      * Returns {@code true} once {@link #init(Application)} has been called.
      * <p>
      * 是否已调用过 {@link #init(Application)}。
+     *
+     * @return whether {@code init} has been called
      */
     public boolean isInitialized() {
         return application != null;
@@ -104,6 +109,7 @@ public class NetStatusBus {
      * <p>
      * 返回总线当前记录的网络类型（init 时记录，之后随每次分发更新），只读缓存、不查询系统，任意线程可调用。
      *
+     * @return the last known network type, never {@code null}
      * @throws IllegalStateException if {@link #init(Application)} has not been called
      */
     @NonNull
@@ -136,6 +142,7 @@ public class NetStatusBus {
      * 开始跟踪网络，通常在 {@code Application.onCreate()} 中调用一次；重复调用不会重复注册系统回调。
      * 系统拒绝注册网络回调时只记录错误、不崩溃，之后再次调用 init 会重试注册。
      *
+     * @param application the application; must not be {@code null}
      * @throws IllegalArgumentException if {@code application} is {@code null}
      */
     @SuppressLint("MissingPermission")
@@ -217,6 +224,7 @@ public class NetStatusBus {
      * 注册订阅者：其（含父类的）{@link NetSubscribe} 方法会立即按 mode 回调一次当前类型，之后回调每次匹配的变化（主线程）。
      * 订阅者以弱引用持有，但用完仍请注销；重复注册无效果。
      *
+     * @param mContext the subscriber (often an Activity or Fragment); {@code null} is ignored
      * @throws IllegalStateException if {@link #init(Application)} has not been called
      * @throws IllegalArgumentException if an annotated method has an invalid signature
      */
@@ -243,7 +251,10 @@ public class NetStatusBus {
      * the owner, so a later re-registration is not undone when this owner is destroyed.
      * Must be called on the main thread.
      *
+     * @param subscriber the object whose {@link NetSubscribe} methods receive changes
+     * @param owner the lifecycle that unregisters {@code subscriber} when it is destroyed
      * @throws IllegalStateException if {@link #init(Application)} has not been called
+     * @throws IllegalArgumentException if {@code subscriber} or {@code owner} is {@code null}
      */
     @MainThread
     public void register(@NonNull Object subscriber, @NonNull LifecycleOwner owner) {
@@ -281,6 +292,8 @@ public class NetStatusBus {
      * {@link com.sunchen.netbus.type.Mode} or see every change, use {@link NetSubscribe} or
      * {@link #addListener(OnNetTypeChangeListener)}. Kotlin coroutine users can convert it with
      * {@code asFlow()} from {@code androidx.lifecycle:lifecycle-livedata-ktx}.
+     *
+     * @return the LiveData holding the current network type (empty until {@code init})
      */
     @NonNull
     public LiveData<NetType> getNetTypeLiveData() {
@@ -299,6 +312,10 @@ public class NetStatusBus {
      * <p>
      * 添加无注解、无反射的监听：添加后立即回调当前网络类型，之后每次变化都回调（主线程）。
      * 监听以强引用持有，用完请调用 {@link #removeListener}，或使用绑定生命周期的重载。
+     *
+     * @param listener the listener to add; must not be {@code null}
+     * @throws IllegalStateException if {@link #init(Application)} has not been called
+     * @throws IllegalArgumentException if {@code listener} is {@code null}
      */
     public void addListener(@NonNull OnNetTypeChangeListener listener) {
         requireInitialized();
@@ -314,6 +331,11 @@ public class NetStatusBus {
      * {@link #removeListener} also detaches the owner. Must be called on the main thread.
      * <p>
      * 添加监听，并在 owner 进入 DESTROYED 时自动移除；owner 已销毁时不添加。必须在主线程调用。
+     *
+     * @param listener the listener to add; must not be {@code null}
+     * @param owner the lifecycle that removes {@code listener} when it is destroyed
+     * @throws IllegalStateException if {@link #init(Application)} has not been called
+     * @throws IllegalArgumentException if {@code listener} or {@code owner} is {@code null}
      */
     @MainThread
     public void addListener(@NonNull OnNetTypeChangeListener listener, @NonNull LifecycleOwner owner) {
@@ -337,6 +359,8 @@ public class NetStatusBus {
      * Removes a listener added with {@code addListener}. Safe to call more than once.
      * <p>
      * 移除通过 {@code addListener} 添加的监听，可重复调用。
+     *
+     * @param listener the listener to remove
      */
     public void removeListener(@NonNull OnNetTypeChangeListener listener) {
         listenerBindings.cancel(listener);
@@ -348,6 +372,8 @@ public class NetStatusBus {
      * than once, before {@code init}, or with {@code null}.
      * <p>
      * 注销订阅者，可重复调用。
+     *
+     * @param mContext the subscriber passed to {@code register}, or {@code null}
      */
     public void unregister(Object mContext) {
         subscriberBindings.cancel(mContext);

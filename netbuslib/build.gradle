@@ -36,6 +36,7 @@ android {
     publishing {
         singleVariant('release') {
             withSourcesJar()
+            withJavadocJar()
         }
     }
 }
@@ -65,5 +66,26 @@ afterEvaluate {
                 version = (project.version == 'unspecified') ? libraryVersion : project.version.toString()
             }
         }
+    }
+}
+
+// Strict check of the public API Javadoc with the JDK doclint (the published -javadoc.jar is
+// rendered by AGP's Dokka-based javaDocReleaseGeneration, which does not report doc errors).
+// CI runs `:netbuslib:javadocLint`; any doclint warning fails the build.
+android.libraryVariants.configureEach { variant ->
+    if (variant.name != 'release') return
+    def javaCompile = variant.javaCompileProvider
+    tasks.register('javadocLint', Javadoc) {
+        group = 'verification'
+        description = 'Runs javadoc with -Xdoclint:all -Werror on the public API (output is discarded).'
+        dependsOn javaCompile
+        source = android.sourceSets.main.java.srcDirs
+        include '**/*.java'
+        classpath = files(android.bootClasspath) + files(javaCompile.map { it.classpath })
+        destinationDir = layout.buildDirectory.dir('tmp/javadocLint').get().asFile
+        options.memberLevel = JavadocMemberLevel.PUBLIC
+        options.encoding = 'UTF-8'
+        options.addStringOption('Xdoclint:all', '-quiet')
+        options.addBooleanOption('Werror', true)
     }
 }

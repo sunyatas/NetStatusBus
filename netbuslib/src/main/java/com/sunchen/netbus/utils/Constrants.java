@@ -13,12 +13,20 @@ package com.sunchen.netbus.utils;
 public class Constrants {
 
     /**
+     * Not meant to be instantiated; kept public for binary compatibility.
+     */
+    public Constrants() {
+    }
+
+    /**
      * Log 日志前缀名
      */
     public static final String LOG_TAG = "network>>>>>";
 
 
-    // 跳转设置回调请求标志码
+    /**
+     * 跳转设置回调请求标志码 (request code the old sample used for the settings screen)
+     */
     public static final int SETTING_REQUEST_CODE = 666;
 
 }

@@ -53,6 +53,9 @@ jobs:
             app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
 
+      - name: Javadoc (doclint on public API, warnings are errors; builds the -javadoc.jar)
+        run: ./gradlew :netbuslib:javadocLint :netbuslib:javaDocReleaseJar --no-daemon --stacktrace
+
       - name: Assemble minified release (checks consumer R8 rules)
         run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
 
@@ -68,6 +71,6 @@ jobs:
         run: |
           ./gradlew :netbuslib:publishToMavenLocal -Pversion=ci-check --no-daemon --stacktrace
           dir="$HOME/.m2/repository/com/github/sunyatas/netstatusbus/ci-check"
-          for f in netstatusbus-ci-check.aar netstatusbus-ci-check.pom netstatusbus-ci-check-sources.jar; do
+          for f in netstatusbus-ci-check.aar netstatusbus-ci-check.pom netstatusbus-ci-check-sources.jar netstatusbus-ci-check-javadoc.jar; do
             test -s "$dir/$f" || { echo "::error::$f missing from publication"; ls -la "$dir" || true; exit 1; }
           done

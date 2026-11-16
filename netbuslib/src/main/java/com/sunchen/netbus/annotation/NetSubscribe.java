@@ -34,6 +34,8 @@ import java.lang.annotation.Target;
 public @interface NetSubscribe {
     /**
      * Which changes this method receives; {@link Mode#AUTO} (every change) by default.
+     *
+     * @return the filter for the changes delivered to this method
      */
     Mode mode() default Mode.AUTO;
 }

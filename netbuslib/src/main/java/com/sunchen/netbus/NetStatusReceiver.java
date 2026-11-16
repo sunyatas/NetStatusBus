@@ -521,6 +521,14 @@ public class NetStatusReceiver {
         return sb.toString();
     }
 
+    /**
+     * Stops delivering changes to {@code mContext}. Apps should call
+     * {@link NetStatusBus#unregister(Object)} instead.
+     * <p>
+     * 注销订阅者；应用请使用 {@link NetStatusBus#unregister(Object)}。
+     *
+     * @param mContext the subscriber to remove; {@code null} is ignored
+     */
     public void unRegisterObserver(Object mContext) {
         if (mContext == null) {
             return;
@@ -534,6 +542,12 @@ public class NetStatusReceiver {
         }
     }
 
+    /**
+     * Removes every subscriber and listener. Apps should call
+     * {@link NetStatusBus#unregisterAllObserver()} instead.
+     * <p>
+     * 注销所有订阅者和监听；应用请使用 {@link NetStatusBus#unregisterAllObserver()}。
+     */
     public void unRegisterAllObserver() {
         synchronized (observersLock) {
             networkList.clear();

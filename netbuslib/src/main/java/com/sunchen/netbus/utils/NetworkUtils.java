@@ -47,6 +47,13 @@ import com.sunchen.netbus.type.NetType;
 public class NetworkUtils {
 
     /**
+     * All methods are static; there is no need to create an instance. This constructor only
+     * exists because the class has always had a public one.
+     */
+    public NetworkUtils() {
+    }
+
+    /**
      * Returns whether the device currently has a network that offers internet access.
      * <p>
      * On Android 6.0+ this checks the active network for
@@ -208,6 +215,7 @@ public class NetworkUtils {
      * <p>
      * 获取当前的网络类型
      *
+     * @return the current network type, never {@code null}
      * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static NetType getNetType() {
@@ -223,6 +231,7 @@ public class NetworkUtils {
      * Android 6.0+ 使用 NetworkCapabilities 判断，旧系统回退到 NetworkInfo。
      *
      * @param lostNetwork a network to ignore, or {@code null}
+     * @return the current network type, never {@code null}
      * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static NetType getNetType(Network lostNetwork) {
@@ -236,6 +245,7 @@ public class NetworkUtils {
      * 同 {@link #getNetType()}，但使用传入的 {@link Context}，不需要先调用 init。
      *
      * @param context any context; must not be {@code null}
+     * @return the current network type, never {@code null}
      * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static NetType getNetType(Context context) {
@@ -273,6 +283,9 @@ public class NetworkUtils {
     /**
      * 根据某个网络的 NetworkCapabilities 计算网络类型（Android 6.0+）。
      * 仅供库内部使用。
+     *
+     * @param caps the capabilities of a network, or {@code null}
+     * @return the network type those capabilities describe
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY)
     public static NetType typeOf(NetworkCapabilities caps) {
@@ -382,6 +395,7 @@ public class NetworkUtils {
      * <p>
      * 当前是否有 VPN 处于连接状态（Android 6.0+，旧系统返回 false）。
      *
+     * @return whether a VPN is connected
      * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static boolean isVpnActive() {
@@ -395,6 +409,7 @@ public class NetworkUtils {
      * 同 {@link #isVpnActive()}，但使用传入的 {@link Context}，不需要先调用 init。
      *
      * @param context any context; must not be {@code null}
+     * @return whether a VPN is connected
      * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static boolean isVpnActive(Context context) {
@@ -499,6 +514,7 @@ public class NetworkUtils {
      * 否则返回 {@link MobileGeneration#UNKNOWN}，不会抛出异常。
      * 注意：5G NSA（非独立组网）在系统层面通常报告为 LTE，因此会返回 G4。
      *
+     * @return the mobile generation, or {@link MobileGeneration#UNKNOWN}
      * @throws IllegalStateException if {@link NetStatusBus#init(android.app.Application)} has not been called
      */
     public static MobileGeneration getMobileGeneration() {
@@ -512,6 +528,7 @@ public class NetworkUtils {
      * 同 {@link #getMobileGeneration()}，但使用传入的 {@link Context}，不需要先调用 init。
      *
      * @param context any context; must not be {@code null}
+     * @return the mobile generation, or {@link MobileGeneration#UNKNOWN}
      * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static MobileGeneration getMobileGeneration(Context context) {
@@ -577,6 +594,8 @@ public class NetworkUtils {
      * <p>
      * 打开系统 Wi-Fi 设置界面，不关心返回结果。
      * 可以传入任意 {@link Context}；非 Activity 时会自动加上 {@link Intent#FLAG_ACTIVITY_NEW_TASK}。
+     *
+     * @param context any context, or {@code null} to do nothing
      */
     public static void openSetting(Context context) {
         openSetting(context, -1);

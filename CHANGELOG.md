@@ -12,6 +12,13 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 - Removed two version checks lint flagged as always true with `minSdk 21` (`SDK_INT >= LOLLIPOP` in `init`, `@RequiresApi(LOLLIPOP)` on the internal pre-7.0 callback). No behavior change.
 - CI now also runs Android Lint on the sample app (`:app:lintDebug`, warnings as errors; `GradleDependency` and `OldTargetApi` disabled, the latter because its result depends on the newest SDK platform installed on the build machine); both lint reports are uploaded when either fails.
 
+- The JitPack/Maven publication now also ships a `-javadoc.jar` next to the `-sources.jar` (`withJavadocJar()` on the `release` variant), so IDEs can show the library's docs without the sources. The jar is rendered by AGP's Dokka-based `javaDocReleaseGeneration`.
+- New `:netbuslib:javadocLint` task runs the JDK `javadoc` with `-Xdoclint:all -Werror` on the public API; CI runs it together with `javaDocReleaseJar`, and the Maven-local publication check also requires the `-javadoc.jar`.
+
+### Documentation
+
+- Public API Javadoc is doclint-clean (was 30 warnings): added the missing `@param`/`@return`/`@throws` tags on `NetStatusBus`, `NetworkUtils` and `NetSubscribe.mode()`, and comments on `NetStatusReceiver.unRegisterObserver`/`unRegisterAllObserver` and `Constrants.SETTING_REQUEST_CODE`. `NetworkUtils` and the deprecated `Constrants` now declare their public no-arg constructor explicitly so it can carry a comment; the API is unchanged.
+
 ### Sample app
 
 - Sample app lint is clean (was 19 warnings): UI text moved to `strings.xml` (no string literals in layouts or `setText`), content descriptions on the network status images, monochrome layer for the adaptive launcher icons (Android 13 themed icons), `FragmentContainerView` as the fragment container, no redundant white background on the fragment, and `VectorPath` suppressed on the one static 120dp icon. The five `GradleDependency` warnings are handled by disabling that check, as in the library.
