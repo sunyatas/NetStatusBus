@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'maven-publish'
+    id 'me.champeau.gradle.japicmp' version '0.4.6'
 }
 
 android {
@@ -89,3 +90,39 @@ android.libraryVariants.configureEach { variant ->
         options.addBooleanOption('Werror', true)
     }
 }
+
+// Binary compatibility check against the last release on JitPack. CI runs `:netbuslib:japicmp`;
+// removing or changing anything public that 1.2.0 callers could link against fails the build.
+// Additions are allowed. Bump apiBaselineVersion after each release.
+def apiBaselineVersion = '1.2.0'
+def apiBaseline = configurations.detachedConfiguration(
+        dependencies.create("com.github.sunyatas:NetStatusBus:${apiBaselineVersion}@aar"))
+apiBaseline.transitive = false
+
+def extractApiBaseline = tasks.register('extractApiBaseline', Copy) {
+    from({ zipTree(apiBaseline.singleFile) }) { include 'classes.jar' }
+    into layout.buildDirectory.dir("tmp/apiBaseline/${apiBaselineVersion}")
+}
+
+android.libraryVariants.configureEach { variant ->
+    if (variant.name != 'release') return
+    def javaCompile = variant.javaCompileProvider
+    def currentJar = tasks.register('apiCurrentJar', Jar) {
+        from(javaCompile.flatMap { it.destinationDirectory })
+        exclude '**/BuildConfig.class', '**/R.class', '**/R$*.class'
+        archiveFileName = 'current-api.jar'
+        destinationDirectory = layout.buildDirectory.dir('tmp/apiCurrent')
+    }
+    tasks.register('japicmp', me.champeau.gradle.japicmp.JapicmpTask) {
+        group = 'verification'
+        description = "Fails if the public API is not binary compatible with ${apiBaselineVersion}."
+        dependsOn extractApiBaseline
+        oldClasspath.from(extractApiBaseline.map { new File(it.destinationDir, 'classes.jar') })
+        newClasspath.from(currentJar)
+        onlyBinaryIncompatibleModified = true
+        failOnModification = true
+        ignoreMissingClasses = true
+        txtOutputFile = layout.buildDirectory.file('reports/japicmp.txt')
+    }
+}
+

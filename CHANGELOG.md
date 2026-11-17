@@ -14,6 +14,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - The JitPack/Maven publication now also ships a `-javadoc.jar` next to the `-sources.jar` (`withJavadocJar()` on the `release` variant), so IDEs can show the library's docs without the sources. The jar is rendered by AGP's Dokka-based `javaDocReleaseGeneration`.
 - New `:netbuslib:javadocLint` task runs the JDK `javadoc` with `-Xdoclint:all -Werror` on the public API; CI runs it together with `javaDocReleaseJar`, and the Maven-local publication check also requires the `-javadoc.jar`.
+- New `:netbuslib:japicmp` task checks that the library stays binary compatible with the last release (1.2.0, fetched from JitPack) using [japicmp](https://github.com/siom79/japicmp). Only breaking changes to public or protected API fail it; additions pass. CI runs it and uploads the report when it fails. The baseline version (`apiBaselineVersion` in `netbuslib/build.gradle`) is bumped after each release.
 
 ### Documentation
 

@@ -56,6 +56,17 @@ jobs:
       - name: Javadoc (doclint on public API, warnings are errors; builds the -javadoc.jar)
         run: ./gradlew :netbuslib:javadocLint :netbuslib:javaDocReleaseJar --no-daemon --stacktrace
 
+      - name: Binary compatibility with the last release (japicmp)
+        run: ./gradlew :netbuslib:japicmp --no-daemon --stacktrace
+
+      - name: Upload japicmp report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japicmp-report
+          path: netbuslib/build/reports/japicmp.txt
+          if-no-files-found: ignore
+
       - name: Assemble minified release (checks consumer R8 rules)
         run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
 
