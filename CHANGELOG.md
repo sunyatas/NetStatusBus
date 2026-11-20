@@ -16,6 +16,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 - New `:netbuslib:javadocLint` task runs the JDK `javadoc` with `-Xdoclint:all -Werror` on the public API; CI runs it together with `javaDocReleaseJar`, and the Maven-local publication check also requires the `-javadoc.jar`.
 - New `:netbuslib:japicmp` task checks that the library stays binary compatible with the last release (1.2.0, fetched from JitPack) using [japicmp](https://github.com/siom79/japicmp). Only breaking changes to public or protected API fail it; additions pass. CI runs it and uploads the report when it fails. The baseline version (`apiBaselineVersion` in `netbuslib/build.gradle`) is bumped after each release.
 
+### Tests
+
+- `NetworkUtils.getNetType`, `isNetworkAvailable` and `isVpnActive` are now unit tested on both code paths. Their logic moved into package-private overloads that take the `ConnectivityManager` and the SDK level, so a mocked `ConnectivityManager` can drive the Android 6.0+ (`NetworkCapabilities`) and pre-6.0 (`NetworkInfo`) branches; on the JVM `Build.VERSION.SDK_INT` is 0, so the 6.0+ branch never ran in tests before. The 16 new tests cover the `onLost` case where the lost network is still reported as active (#6, #9), a VPN without a declared transport falling back to its underlying network (skipping the lost one and networks without capabilities), networks without `INTERNET`, and captive-portal Wi-Fi still counting as available. Public API and behavior are unchanged.
+
 ### Documentation
 
 - Public API Javadoc is doclint-clean (was 30 warnings): added the missing `@param`/`@return`/`@throws` tags on `NetStatusBus`, `NetworkUtils` and `NetSubscribe.mode()`, and comments on `NetStatusReceiver.unRegisterObserver`/`unRegisterAllObserver` and `Constrants.SETTING_REQUEST_CODE`. `NetworkUtils` and the deprecated `Constrants` now declare their public no-arg constructor explicitly so it can carry a comment; the API is unchanged.

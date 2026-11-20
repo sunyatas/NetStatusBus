@@ -87,12 +87,20 @@ public class NetworkUtils {
      * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static boolean isNetworkAvailable(Context context) {
-        ConnectivityManager connectivityManager = connectivityManager(context);
+        return isNetworkAvailable(connectivityManager(context), Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Availability decision against a given {@link ConnectivityManager} and SDK level, so the
+     * Android 6.0+ and pre-6.0 branches can be unit tested with mocks.
+     */
+    @SuppressLint("NewApi") // getActiveNetwork() is only called when sdkInt >= M
+    static boolean isNetworkAvailable(ConnectivityManager connectivityManager, int sdkInt) {
         if (connectivityManager == null) {
             return false;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (sdkInt >= Build.VERSION_CODES.M) {
             Network active = connectivityManager.getActiveNetwork();
             if (active == null) {
                 return false;
@@ -253,11 +261,20 @@ public class NetworkUtils {
     }
 
     private static NetType getNetType(Context context, Network lostNetwork) {
-        ConnectivityManager connectivityManager = connectivityManager(context);
+        return getNetType(connectivityManager(context), lostNetwork, Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Type decision against a given {@link ConnectivityManager} and SDK level, so the
+     * Android 6.0+ (capabilities) and pre-6.0 ({@link NetworkInfo}) branches, and the
+     * {@code lostNetwork} handling (#6 #9), can be unit tested with mocks.
+     */
+    @SuppressLint("NewApi") // capability APIs are only called when sdkInt >= M
+    static NetType getNetType(ConnectivityManager connectivityManager, Network lostNetwork, int sdkInt) {
         if (connectivityManager == null) {
             return NetType.NONE;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (sdkInt >= Build.VERSION_CODES.M) {
             Network active = connectivityManager.getActiveNetwork();
             if (active == null || active.equals(lostNetwork)) {
                 return NetType.NONE;
@@ -413,8 +430,13 @@ public class NetworkUtils {
      * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static boolean isVpnActive(Context context) {
-        ConnectivityManager cm = connectivityManager(context);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        return isVpnActive(connectivityManager(context), Build.VERSION.SDK_INT);
+    }
+
+    /** VPN decision against a given {@link ConnectivityManager} and SDK level, for unit tests. */
+    @SuppressLint("NewApi") // capability APIs are only called when sdkInt >= M
+    static boolean isVpnActive(ConnectivityManager cm, int sdkInt) {
+        if (sdkInt < Build.VERSION_CODES.M) {
             return false;
         }
         if (cm == null) {
