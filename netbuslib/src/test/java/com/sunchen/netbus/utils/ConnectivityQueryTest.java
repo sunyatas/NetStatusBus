@@ -19,8 +19,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Drives {@link NetworkUtils#getNetType}, {@link NetworkUtils#isNetworkAvailable} and
- * {@link NetworkUtils#isVpnActive} through a mocked {@link ConnectivityManager} at different
+ * Drives {@link NetworkUtils#getNetType}, {@link NetworkUtils#isNetworkAvailable},
+ * {@link NetworkUtils#isVpnActive}, {@link NetworkUtils#isInternetValidated} and
+ * {@link NetworkUtils#isMetered} through a mocked {@link ConnectivityManager} at different
  * SDK levels. On the plain JVM {@code Build.VERSION.SDK_INT} is 0, so without the
  * {@code sdkInt} seam only the pre-6.0 branch would ever run in tests.
  */
@@ -213,6 +214,91 @@ public class ConnectivityQueryTest {
         assertTrue(NetworkUtils.isVpnActive(cm, M));
     }
 
+    // ---- isInternetValidated ----
+
+    @Test
+    public void validationNeedsAnActiveNetworkWithCapabilities() {
+        assertFalse(NetworkUtils.isActiveNetworkValidated(null, LATEST));
+        assertFalse(NetworkUtils.isActiveNetworkValidated(cm, LATEST));
+
+        active(network(null));
+        assertFalse(NetworkUtils.isActiveNetworkValidated(cm, LATEST));
+    }
+
+    @Test
+    public void validatedActiveNetworkIsValidated() {
+        active(network(validatedCaps(true, false)));
+        assertTrue(NetworkUtils.isActiveNetworkValidated(cm, M));
+        assertTrue(NetworkUtils.isActiveNetworkValidated(cm, LATEST));
+    }
+
+    @Test
+    public void captivePortalIsConnectedButNotValidated() {
+        active(network(validatedCaps(false, true)));
+        assertTrue(NetworkUtils.isNetworkAvailable(cm, LATEST));
+        assertFalse(NetworkUtils.isActiveNetworkValidated(cm, LATEST));
+
+        // a captive portal that reports VALIDATED is still not trusted
+        active(network(validatedCaps(true, true)));
+        assertFalse(NetworkUtils.isActiveNetworkValidated(cm, LATEST));
+    }
+
+    @Test
+    public void lanOnlyNetworkIsConnectedButNotValidated() {
+        active(network(validatedCaps(false, false)));
+        assertTrue(NetworkUtils.isNetworkAvailable(cm, LATEST));
+        assertFalse(NetworkUtils.isActiveNetworkValidated(cm, LATEST));
+    }
+
+    @Test
+    public void preMarshmallowValidationFallsBackToAvailability() {
+        assertFalse(NetworkUtils.isActiveNetworkValidated(null, L));
+        assertFalse(NetworkUtils.isActiveNetworkValidated(cm, L));
+
+        NetworkInfo up = info(ConnectivityManager.TYPE_WIFI, true);
+        when(cm.getAllNetworkInfo()).thenReturn(new NetworkInfo[]{up});
+        assertTrue(NetworkUtils.isActiveNetworkValidated(cm, L));
+        verify(cm, never()).getActiveNetwork();
+    }
+
+    // ---- isMetered ----
+
+    @Test
+    public void noNetworkCountsAsMetered() {
+        assertTrue(NetworkUtils.isActiveNetworkMetered(null, LATEST));
+        assertTrue(NetworkUtils.isActiveNetworkMetered(null, L));
+        assertTrue(NetworkUtils.isActiveNetworkMetered(cm, LATEST));
+
+        active(network(null));
+        assertTrue(NetworkUtils.isActiveNetworkMetered(cm, LATEST));
+    }
+
+    @Test
+    public void meteredComesFromTheActiveNetworksCapabilities() {
+        active(network(meteredCaps(true, false)));
+        assertFalse(NetworkUtils.isActiveNetworkMetered(cm, M));
+
+        active(network(meteredCaps(false, false)));
+        assertTrue(NetworkUtils.isActiveNetworkMetered(cm, LATEST));
+        verify(cm, never()).isActiveNetworkMetered();
+    }
+
+    @Test
+    public void temporarilyNotMeteredIsPassedTheSdkLevel() {
+        active(network(meteredCaps(false, true)));
+        assertFalse(NetworkUtils.isActiveNetworkMetered(cm, 30));
+        assertTrue(NetworkUtils.isActiveNetworkMetered(cm, 29));
+    }
+
+    @Test
+    public void preMarshmallowMeteredAsksTheSystem() {
+        when(cm.isActiveNetworkMetered()).thenReturn(false);
+        assertFalse(NetworkUtils.isActiveNetworkMetered(cm, L));
+        when(cm.isActiveNetworkMetered()).thenReturn(true);
+        assertTrue(NetworkUtils.isActiveNetworkMetered(cm, L));
+        verify(cm, never()).getActiveNetwork();
+    }
+
     // ---- helpers ----
 
     // Arguments are built (and their own stubs finished) before stubbing cm.
@@ -249,6 +335,22 @@ public class ConnectivityQueryTest {
         for (Transport t : transports) {
             when(caps.hasTransport(t.value)).thenReturn(true);
         }
+        return caps;
+    }
+
+    private static NetworkCapabilities validatedCaps(boolean validated, boolean captivePortal) {
+        NetworkCapabilities caps = caps(true, Transport.WIFI);
+        when(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)).thenReturn(validated);
+        when(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
+                .thenReturn(captivePortal);
+        return caps;
+    }
+
+    private static NetworkCapabilities meteredCaps(boolean notMetered, boolean temporarilyNotMetered) {
+        NetworkCapabilities caps = caps(true, Transport.WIFI);
+        when(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)).thenReturn(notMetered);
+        when(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_TEMPORARILY_NOT_METERED))
+                .thenReturn(temporarilyNotMetered);
         return caps;
     }
 

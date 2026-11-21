@@ -181,10 +181,18 @@ public class NetworkUtils {
      * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static boolean isInternetValidated(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return isNetworkAvailable(context);
+        return isActiveNetworkValidated(connectivityManager(context), Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Validation decision against a given {@link ConnectivityManager} and SDK level, so the
+     * Android 6.0+ and pre-6.0 branches can be unit tested with mocks.
+     */
+    @SuppressLint("NewApi") // getActiveNetwork() is only called when sdkInt >= M
+    static boolean isActiveNetworkValidated(ConnectivityManager cm, int sdkInt) {
+        if (sdkInt < Build.VERSION_CODES.M) {
+            return isNetworkAvailable(cm, sdkInt);
         }
-        ConnectivityManager cm = connectivityManager(context);
         if (cm == null) {
             return false;
         }
@@ -490,16 +498,25 @@ public class NetworkUtils {
      * @throws IllegalArgumentException if {@code context} is {@code null}
      */
     public static boolean isMetered(Context context) {
-        ConnectivityManager cm = connectivityManager(context);
+        return isActiveNetworkMetered(connectivityManager(context), Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Metered decision against a given {@link ConnectivityManager} and SDK level, so the
+     * Android 6.0+ (capabilities) and pre-6.0 ({@code isActiveNetworkMetered}) branches can be
+     * unit tested with mocks.
+     */
+    @SuppressLint("NewApi") // getActiveNetwork() is only called when sdkInt >= M
+    static boolean isActiveNetworkMetered(ConnectivityManager cm, int sdkInt) {
         if (cm == null) {
             return true;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (sdkInt >= Build.VERSION_CODES.M) {
             Network active = cm.getActiveNetwork();
             if (active == null) {
                 return true;
             }
-            return isMetered(cm.getNetworkCapabilities(active), Build.VERSION.SDK_INT);
+            return isMetered(cm.getNetworkCapabilities(active), sdkInt);
         }
         return cm.isActiveNetworkMetered();
     }
@@ -562,12 +579,25 @@ public class NetworkUtils {
                 Process.myPid(), Process.myUid()) != PackageManager.PERMISSION_GRANTED) {
             return MobileGeneration.UNKNOWN;
         }
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        return mobileGeneration(
+                (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE),
+                Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Reads the data network type from a given {@link TelephonyManager} at a given SDK level
+     * ({@code getDataNetworkType()} on Android 7.0+, {@code getNetworkType()} below), so both
+     * branches and the {@link SecurityException} fallback can be unit tested with mocks.
+     * The caller has already checked the network type and {@code READ_PHONE_STATE}.
+     */
+    @SuppressLint({"NewApi", "MissingPermission"}) // sdkInt-guarded; permission checked by caller
+    @SuppressWarnings("deprecation") // getNetworkType() is the pre-7.0 API
+    static MobileGeneration mobileGeneration(TelephonyManager tm, int sdkInt) {
         if (tm == null) {
             return MobileGeneration.UNKNOWN;
         }
         try {
-            int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+            int type = sdkInt >= Build.VERSION_CODES.N
                     ? tm.getDataNetworkType() : tm.getNetworkType();
             return fromTelephonyType(type);
         } catch (SecurityException e) {
