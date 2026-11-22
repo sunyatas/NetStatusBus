@@ -94,9 +94,9 @@ android.libraryVariants.configureEach { variant ->
 }
 
 // Binary compatibility check against the last release on JitPack. CI runs `:netbuslib:japicmp`;
-// removing or changing anything public that 1.2.0 callers could link against fails the build.
+// removing or changing anything public that 1.2.1 callers could link against fails the build.
 // Additions are allowed. Bump apiBaselineVersion after each release.
-def apiBaselineVersion = '1.2.0'
+def apiBaselineVersion = '1.2.1'
 def apiBaseline = configurations.detachedConfiguration(
         dependencies.create("com.github.sunyatas:NetStatusBus:${apiBaselineVersion}@aar"))
 apiBaseline.transitive = false
