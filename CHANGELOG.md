@@ -6,6 +6,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-22
+
 ### Fixed
 
 - A separate bus created with `new NetStatusBus()` can now be initialized on its own. `init` recorded the starting type through `NetworkUtils.getNetType()`, and the system network callbacks typed every change through the singleton's application, so calling `init` on a separate bus threw `IllegalStateException` unless `NetStatusBus.getInstance()` had been initialized as well. `init` and both callbacks now query the `ConnectivityManager` of the application given to that bus's `init`. The singleton behaves the same as before.
@@ -161,7 +163,8 @@ First release published through JitPack:
   parameter or a non-void return type were already rejected.
 - Callbacks always arrive on the main thread.
 
-[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.2.0...master
+[Unreleased]: https://github.com/sunyatas/NetStatusBus/compare/v1.2.1...master
+[1.2.1]: https://github.com/sunyatas/NetStatusBus/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/sunyatas/NetStatusBus/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/sunyatas/NetStatusBus/compare/v1.0.0...v1.1.0
