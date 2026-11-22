@@ -6,6 +6,10 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 ## [Unreleased]
 
+### Fixed
+
+- A separate bus created with `new NetStatusBus()` can now be initialized on its own. `init` recorded the starting type through `NetworkUtils.getNetType()`, and the system network callbacks typed every change through the singleton's application, so calling `init` on a separate bus threw `IllegalStateException` unless `NetStatusBus.getInstance()` had been initialized as well. `init` and both callbacks now query the `ConnectivityManager` of the application given to that bus's `init`. The singleton behaves the same as before.
+
 ### Build
 
 - CI now runs Android Lint on the library (`:netbuslib:lintDebug`) with warnings treated as errors, and uploads the lint report when it fails. `GradleDependency` is disabled because the library's AndroidX versions are kept low on purpose so the host app's newer versions win.
@@ -20,6 +24,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/) from 1
 
 - `NetworkUtils.getNetType`, `isNetworkAvailable` and `isVpnActive` are now unit tested on both code paths. Their logic moved into package-private overloads that take the `ConnectivityManager` and the SDK level, so a mocked `ConnectivityManager` can drive the Android 6.0+ (`NetworkCapabilities`) and pre-6.0 (`NetworkInfo`) branches; on the JVM `Build.VERSION.SDK_INT` is 0, so the 6.0+ branch never ran in tests before. The 16 new tests cover the `onLost` case where the lost network is still reported as active (#6, #9), a VPN without a declared transport falling back to its underlying network (skipping the lost one and networks without capabilities), networks without `INTERNET`, and captive-portal Wi-Fi still counting as available. Public API and behavior are unchanged.
 - `NetworkUtils.isInternetValidated`, `isMetered` and `getMobileGeneration` are now unit tested on every SDK branch too, using the same kind of package-private seams (`isActiveNetworkValidated` / `isActiveNetworkMetered` take the `ConnectivityManager` and SDK level, `mobileGeneration` takes the `TelephonyManager` and SDK level). The 14 new tests cover no network or vanished capabilities (not validated, counted as metered), captive-portal and LAN-only networks that are connected but not validated, `TEMPORARILY_NOT_METERED` only trusted from Android 11, the pre-6.0 fallbacks (`isNetworkAvailable` and `isActiveNetworkMetered()`), `getDataNetworkType()` on Android 7.0+ versus `getNetworkType()` below, and a `SecurityException` from `TelephonyManager` returning `UNKNOWN`. Public API and behavior are unchanged.
+
+- The system network callbacks are now unit tested: `DefaultNetworkCallbackImpl` (Android 7.0+) and the pre-7.0 `NetworkCallbackImpl` take the `ConnectivityManager` and SDK level, so 10 new tests drive them with mocks. They cover typing `onAvailable` from that network's own capabilities, the switch to cellular with no `onLost` and a late `onLost` of the old network being ignored (#4), repeated capability changes delivered once, vanished capabilities or lost `INTERNET` reported as `NONE`, a VPN resolved through the bus's manager, the pre-7.0 `onLost` while the lost network is still reported as active (#6, #9), the pre-6.0 `NetworkInfo` path, and a separate bus going through `init`, callback registration and a change reaching `getCurrentNetType()` and the LiveData. Adds `androidx.arch.core:core-testing` as a test-only dependency. `NetworkUtils.getNetType(ConnectivityManager, Network, int)` is now public and `NetworkUtils.typeOf(ConnectivityManager, NetworkCapabilities, int)` is new; both are `@RestrictTo(LIBRARY)` internals, not supported API. japicmp passes (additions only).
 
 ### Documentation
 

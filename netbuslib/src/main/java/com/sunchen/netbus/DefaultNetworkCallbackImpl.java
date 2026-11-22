@@ -21,23 +21,35 @@ import com.sunchen.netbus.utils.NetworkUtils;
 final class DefaultNetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
     private final NetStatusReceiver mReceiver;
     private final ConnectivityManager mManager;
+    private final int mSdkInt;
     private final DefaultNetworkTracker mTracker = new DefaultNetworkTracker();
 
     DefaultNetworkCallbackImpl(NetStatusReceiver receiver, ConnectivityManager manager) {
+        this(receiver, manager, Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Types are decided against {@code manager} (the bus's own), not the singleton's
+     * application, so a bus made with {@code new NetStatusBus()} works on its own; the SDK
+     * level is a parameter so tests can run the Android 6.0+ capability path on the JVM.
+     */
+    DefaultNetworkCallbackImpl(NetStatusReceiver receiver, ConnectivityManager manager, int sdkInt) {
         mReceiver = receiver;
         mManager = manager;
+        mSdkInt = sdkInt;
     }
 
     @Override
     public void onAvailable(Network network) {
         // Android 8.0+ 之后紧跟 onCapabilitiesChanged；7.x 需要自己查询该网络的能力
         NetworkCapabilities caps = mManager.getNetworkCapabilities(network);
-        dispatch(mTracker.onAvailable(network, NetworkUtils.typeOf(caps)));
+        dispatch(mTracker.onAvailable(network, NetworkUtils.typeOf(mManager, caps, mSdkInt)));
     }
 
     @Override
     public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
-        dispatch(mTracker.onCapabilitiesChanged(network, NetworkUtils.typeOf(networkCapabilities)));
+        dispatch(mTracker.onCapabilitiesChanged(network,
+                NetworkUtils.typeOf(mManager, networkCapabilities, mSdkInt)));
     }
 
     @Override

@@ -275,10 +275,18 @@ public class NetworkUtils {
     /**
      * Type decision against a given {@link ConnectivityManager} and SDK level, so the
      * Android 6.0+ (capabilities) and pre-6.0 ({@link NetworkInfo}) branches, and the
-     * {@code lostNetwork} handling (#6 #9), can be unit tested with mocks.
+     * {@code lostNetwork} handling (#6 #9), can be unit tested with mocks. Also used by the
+     * bus's own network callbacks, so they query the bus's {@code ConnectivityManager}
+     * instead of the singleton's. Internal; not part of the supported public API.
+     *
+     * @param connectivityManager the manager to query, or {@code null} (gives {@code NONE})
+     * @param lostNetwork a network to treat as already disconnected, or {@code null}
+     * @param sdkInt the SDK level to decide for, normally {@code Build.VERSION.SDK_INT}
+     * @return the current network type, never {@code null}
      */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
     @SuppressLint("NewApi") // capability APIs are only called when sdkInt >= M
-    static NetType getNetType(ConnectivityManager connectivityManager, Network lostNetwork, int sdkInt) {
+    public static NetType getNetType(ConnectivityManager connectivityManager, Network lostNetwork, int sdkInt) {
         if (connectivityManager == null) {
             return NetType.NONE;
         }
@@ -320,7 +328,25 @@ public class NetworkUtils {
         ConnectivityManager cm = (ConnectivityManager) NetStatusBus.getInstance()
                 .getApplication()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
-        return typeOf(cm, caps, null);
+        return typeOf(cm, caps, Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Same as {@link #typeOf(NetworkCapabilities)}, but against a given
+     * {@link ConnectivityManager} (used for a VPN's underlying network) and SDK level, and
+     * without needing {@code init}. Internal; not part of the supported public API.
+     *
+     * @param cm the manager used to look up a VPN's underlying network, or {@code null}
+     * @param caps the capabilities of a network, or {@code null}
+     * @param sdkInt the SDK level to decide for, normally {@code Build.VERSION.SDK_INT}
+     * @return the network type those capabilities describe; {@code NONE} below Android 6.0
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    public static NetType typeOf(ConnectivityManager cm, NetworkCapabilities caps, int sdkInt) {
+        if (sdkInt < Build.VERSION_CODES.M) {
+            return NetType.NONE;
+        }
+        return typeOf(cm, caps, (Network) null);
     }
 
     @android.annotation.TargetApi(Build.VERSION_CODES.M)

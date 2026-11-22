@@ -3,6 +3,7 @@ package com.sunchen.netbus;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.os.Build;
 
 import com.sunchen.netbus.utils.NetworkUtils;
 
@@ -18,26 +19,35 @@ import com.sunchen.netbus.utils.NetworkUtils;
  */
 final class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
     private final NetStatusReceiver mReceiver;
+    private final ConnectivityManager mManager;
+    private final int mSdkInt;
 
-    NetworkCallbackImpl(NetStatusReceiver receiver) {
+    NetworkCallbackImpl(NetStatusReceiver receiver, ConnectivityManager manager) {
+        this(receiver, manager, Build.VERSION.SDK_INT);
+    }
+
+    /**
+     * Queries {@code manager} (the bus's own) rather than the singleton's application, so a
+     * bus made with {@code new NetStatusBus()} works on its own; {@code sdkInt} is for tests.
+     */
+    NetworkCallbackImpl(NetStatusReceiver receiver, ConnectivityManager manager, int sdkInt) {
         mReceiver = receiver;
+        mManager = manager;
+        mSdkInt = sdkInt;
     }
 
     @Override
     public void onAvailable(Network network) {
-        super.onAvailable(network);
-        mReceiver.postIfChanged(NetworkUtils.getNetType());
+        mReceiver.postIfChanged(NetworkUtils.getNetType(mManager, null, mSdkInt));
     }
 
     @Override
     public void onLost(Network network) {
-        super.onLost(network);
-        mReceiver.postIfChanged(NetworkUtils.getNetType(network));
+        mReceiver.postIfChanged(NetworkUtils.getNetType(mManager, network, mSdkInt));
     }
 
     @Override
     public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
-        super.onCapabilitiesChanged(network, networkCapabilities);
-        mReceiver.postIfChanged(NetworkUtils.getNetType());
+        mReceiver.postIfChanged(NetworkUtils.getNetType(mManager, null, mSdkInt));
     }
 }

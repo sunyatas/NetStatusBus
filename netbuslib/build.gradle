@@ -51,6 +51,8 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     // Android stubs throw Stub! from ContextWrapper/Activity constructors; mocks avoid calling them
     testImplementation 'org.mockito:mockito-core:5.14.2'
+    // InstantTaskExecutorRule: lets LiveData.setValue run on the JVM, which has no main looper
+    testImplementation 'androidx.arch.core:core-testing:2.2.0'
 }
 
 // Library version. JitPack passes -Pversion=<tag or commit>, which takes precedence.

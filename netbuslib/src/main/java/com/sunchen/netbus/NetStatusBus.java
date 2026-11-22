@@ -145,8 +145,13 @@ public class NetStatusBus {
      * @param application the application; must not be {@code null}
      * @throws IllegalArgumentException if {@code application} is {@code null}
      */
-    @SuppressLint("MissingPermission")
     public synchronized void init(Application application) {
+        init(application, Build.VERSION.SDK_INT);
+    }
+
+    /** {@link #init(Application)} at a given SDK level, so tests can take the Android 7.0+ path. */
+    @SuppressLint({"MissingPermission", "NewApi"}) // callback choice is guarded by sdkInt
+    synchronized void init(Application application, int sdkInt) {
         if (application == null) {
             throw new IllegalArgumentException("application is empty");
         }
@@ -155,8 +160,12 @@ public class NetStatusBus {
         if (networkCallback != null) {
             return;
         }
+        ConnectivityManager manager = (ConnectivityManager) application
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (!receiverPrepared) {
-            receiver.setInitialNetType(com.sunchen.netbus.utils.NetworkUtils.getNetType());
+            // 用本实例的 application 查询，而不是单例的：new NetStatusBus() 创建的独立实例也能单独 init
+            receiver.setInitialNetType(com.sunchen.netbus.utils.NetworkUtils.getNetType(
+                    manager, null, sdkInt));
             // 监听在主线程回调，直接 setValue，保证 LiveData 的值与订阅方法收到的顺序一致
             receiver.setNetTypeListener(new NetStatusReceiver.NetTypeListener() {
                 @Override
@@ -166,17 +175,15 @@ public class NetStatusBus {
             });
             receiverPrepared = true;
         }
-        ConnectivityManager manager = (ConnectivityManager) application
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (manager != null) {
             ConnectivityManager.NetworkCallback callback;
             NetworkRequest request;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (sdkInt >= Build.VERSION_CODES.N) {
                 // 只跟踪系统默认网络，网络切换时立即回调（#4 #11）
-                callback = new DefaultNetworkCallbackImpl(receiver, manager);
+                callback = new DefaultNetworkCallbackImpl(receiver, manager, sdkInt);
                 request = null;
             } else {
-                callback = new NetworkCallbackImpl(receiver);
+                callback = new NetworkCallbackImpl(receiver, manager, sdkInt);
                 request = new NetworkRequest.Builder().build();
             }
             if (registerCallback(manager, callback, request)) {
